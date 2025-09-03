@@ -1,103 +1,61 @@
-import Image from "next/image";
+import type { Metadata } from 'next';
+import HomePageClient from './HomePageClient'; // Importem la part interactiva
+
+// SEO i metadades gestionades al servidor
+export const metadata: Metadata = {
+  title: "Garatge Estació | Taller Mecànic i Lloguer a La Bisbal d'Empordà",
+  description: "El teu taller mecànic multimarca i servei de lloguer de cotxes i autocaravanes a La Bisbal d'Empordà. Confiança i professionalitat des de 1990.",
+  alternates: {
+    canonical: 'https://garatgeestacio.com/',
+  },
+  openGraph: {
+    title: "Garatge Estació | Taller Mecànic i Lloguer a La Bisbal d'Empordà",
+    description: "El teu taller mecànic multimarca i servei de lloguer de cotxes i autocaravanes.",
+    url: 'https://garatgeestacio.com/',
+    siteName: 'Garatge Estació',
+    images: [
+      {
+        url: 'https://res.cloudinary.com/dvqhfapep/image/upload/v1753124394/1-358f0b08_djkf2j.jpg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'ca_ES',
+    type: 'website',
+  },
+};
+
+const homeSchema = {
+  "@context": "https://schema.org",
+  "@type": "AutoRepair",
+  "name": "Garatge Estació",
+  "image": "https://res.cloudinary.com/dvqhfapep/image/upload/v1753124394/1-358f0b08_djkf2j.jpg",
+  "@id": "https://garatgeestacio.com/",
+  "url": "https://garatgeestacio.com/",
+  "telephone": "+34972640204", // Telèfon correcte
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Carrer Ramon Serradell, 21",
+    "addressLocality": "La Bisbal d'Empordà",
+    "postalCode": "17100",
+    "addressRegion": "Girona",
+    "addressCountry": "ES"
+  },
+  "openingHours": "Mo-Fr 08:00-18:00",
+  "sameAs": [
+    "https://www.instagram.com/garatge_estacio_bisbal/" // URL Correcta
+  ]
+};
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <>
+      {/* Script per a les dades estructurades (JSON-LD) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeSchema) }}
+      />
+      <HomePageClient />
+    </>
   );
 }
