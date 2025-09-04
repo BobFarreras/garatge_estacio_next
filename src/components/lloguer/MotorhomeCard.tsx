@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Users, Ruler, Info } from 'lucide-react';
-
+import { getSeason } from '@/lib/motorhomeUtils'; // ✅ Importem la funció de temporada
 import type { Motorhome } from '@/types';
 
-// ✅ Exemple d’imatge local (pots afegir més i fer un mapping segons l’`id` o `name`)
+// ✅ Mapeig d'imatges centralitzat. Pots afegir més imatges aquí.
 import perfilAutocaravana from '@/../public/images/autocaravanes/perfilAutocaravana.jpg';
 
 type MotorhomeCardProps = {
@@ -17,14 +17,16 @@ type MotorhomeCardProps = {
 };
 
 const MotorhomeCard = ({ motorhome, onShowDetails }: MotorhomeCardProps) => {
-  // 🔑 Aquí pots decidir quina imatge local mostrar depenent del model
+  // Determina la temporada del dia actual
+  const currentSeason = getSeason(new Date());
+  // Obté el preu del dia segons la temporada actual
+  const currentDayPrice = motorhome.pricing[currentSeason] || motorhome.pricing.low_season;
+
+  // Lògica per seleccionar la imatge (pots expandir-la si tens més imatges)
   const imageMap: Record<string, any> = {
     default: perfilAutocaravana,
-    // "Camper X": camperXImage,
-    // "Integral Y": integralYImage,
   };
-
-  const imgSrc = imageMap[motorhome.name] || imageMap.default;
+  const imgSrc = imageMap[motorhome.name] || motorhome.image_url || imageMap.default;
 
   return (
     <motion.div 
@@ -58,9 +60,10 @@ const MotorhomeCard = ({ motorhome, onShowDetails }: MotorhomeCardProps) => {
           {motorhome.description}
         </p>
         <div className="mt-auto text-left flex items-baseline">
-          <span className="text-lg text-gray-500">des de </span>
+          <span className="text-lg text-gray-500">Avui des de </span>
+          {/* ✅ Mostra el preu del dia actual */}
           <span className="font-extrabold text-4xl text-red-600 ml-2">
-            {motorhome.pricing?.low_season}€
+            {currentDayPrice}€
           </span>
           <span className="text-lg text-gray-500">/dia</span>
         </div>

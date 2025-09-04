@@ -14,6 +14,8 @@ import { DateRange } from 'react-day-picker';
 import Lightbox from "yet-another-react-lightbox";
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import type { Motorhome } from '@/types';
+import { calculateMotorhomePrice } from '@/lib/motorhomeUtils'; // ✅ Import from the utility file
 
 // ✅ Importacions d’imatges locals
 import menjardorAutocaravana from '@/../public/images/autocaravanes/menjardorAutocaravana.jpg';
@@ -25,13 +27,6 @@ import perfilAutocaravana from '@/../public/images/autocaravanes/perfilAutocarav
 import raderaAutocaravana from '@/../public/images/autocaravanes/raderaAutocaravana.jpg';
 import neveraAutocarabana from '@/../public/images/autocaravanes/neveraAutocarabana.jpg';
 
-type Pricing = { low_season: number; high_season: number; special_season: number; };
-type Motorhome = {
-  id: string;
-  name: string;
-  included_items: string[];
-  pricing: Pricing;
-};
 
 type DialogProps = {
   motorhome: Motorhome | null;
@@ -40,23 +35,8 @@ type DialogProps = {
   onBook: (range: DateRange) => void;
 };
 
-// --- Funcions de càlcul ---
-const getSeason = (date: Date): keyof Pricing => {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  if (month === 8) return 'special_season';
-  if ((month === 6 && day >= 23) || month === 7 || (month === 9 && day <= 11) || (month === 12 && day >= 20) || (month === 1 && day <= 7)) return 'high_season';
-  return 'low_season';
-};
 
-const calculateMotorhomePrice = (range: DateRange | undefined, pricing: Pricing | null) => {
-  if (!pricing || !range?.from || !range?.to || isBefore(range.to, range.from)) return { total: 0, days: 0, error: null };
-  const interval = eachDayOfInterval({ start: range.from, end: range.to });
-  const days = interval.length;
-  if (days < 3) return { total: 0, days, error: "Reserva mínima de 3 dies" };
-  const total = interval.reduce((sum, date) => sum + (pricing[getSeason(date)] || 0), 0);
-  return { total, days, error: null };
-};
+
 
 const MotorhomeDetailsDialog = ({ motorhome, open, onOpenChange, onBook }: DialogProps) => {
   if (!motorhome) return null;
@@ -67,6 +47,12 @@ const MotorhomeDetailsDialog = ({ motorhome, open, onOpenChange, onBook }: Dialo
   const [loadingDates, setLoadingDates] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
+
+// The images now come from the motorhome data provided by Airtable
+  const images = [motorhome.image_url, ...motorhome.gallery_images];
+  const lightboxSlides = images.map(img => ({ src: img }));
+  const priceInfo = calculateMotorhomePrice(dateRange, motorhome.pricing);
+  
   // ✅ Ara definim les imatges locals a usar
   const localImages = [
     menjardorAutocaravana,
@@ -79,8 +65,6 @@ const MotorhomeDetailsDialog = ({ motorhome, open, onOpenChange, onBook }: Dialo
     neveraAutocarabana
   ];
 
-  const lightboxSlides = localImages.map(img => ({ src: img.src }));
-  const priceInfo = calculateMotorhomePrice(dateRange, motorhome.pricing);
 
   useEffect(() => {
     if (open && motorhome) {
@@ -152,22 +136,24 @@ const MotorhomeDetailsDialog = ({ motorhome, open, onOpenChange, onBook }: Dialo
               ))}
             </ul>
           </TabsContent>
-          <TabsContent value="rates" className="pt-3 sm:pt-4 text-sm bg-white p-3 sm:p-4 rounded-lg shadow-sm">
-            <ul className="divide-y divide-gray-200">
-              <li className="flex justify-between py-2 items-center">
-                <span className="font-semibold text-gray-800">T. Baixa</span>
-                <span className="font-mono text-gray-600">{motorhome.pricing.low_season}€/dia</span>
-              </li>
-              <li className="flex justify-between py-2 items-center">
-                <span className="font-semibold text-gray-800">T. Alta</span>
-                <span className="font-mono text-gray-600">{motorhome.pricing.high_season}€/dia</span>
-              </li>
-              <li className="flex justify-between py-2 items-center">
-                <span className="font-semibold text-gray-800">T. Especial</span>
-                <span className="font-mono text-gray-600">{motorhome.pricing.special_season}€/dia</span>
-              </li>
-            </ul>
-          </TabsContent>
+
+          <TabsContent value="rates" className="pt-4 text-base">
+                                    {/* ✅ IMPROVEMENT: Detailed explanation of the seasons */}
+                                    <div className="space-y-4">
+                                        <div className="border-b pb-2">
+                                            <div className="flex justify-between font-semibold"><p>Temporada Baixa</p><p>{motorhome.pricing.low_season}€/dia</p></div>
+                                            <p className="text-sm text-gray-500">Resta de l'any.</p>
+                                        </div>
+                                        <div className="border-b pb-2">
+                                            <div className="flex justify-between font-semibold"><p>Temporada Alta</p><p>{motorhome.pricing.high_season}€/dia</p></div>
+                                            <p className="text-sm text-gray-500">Del 23/06 al 11/09, Nadal, Març i Abril.</p>
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between font-semibold"><p>Temporada Especial</p><p>{motorhome.pricing.special_season}€/dia</p></div>
+                                            <p className="text-sm text-gray-500">Agost.</p>
+                                        </div>
+                                    </div>
+                                </TabsContent>
         </Tabs>
       </div>
 

@@ -11,6 +11,7 @@ import * as z from 'zod';
 import { useSearchParams } from 'next/navigation';
 import { Mail, Phone, MapPin, Send, User, MessageSquare, Tag, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -118,7 +119,13 @@ const Contacte = () => {
                                 <div className="items-top flex space-x-2">
                                     <Controller name="privacyPolicy" control={control} render={({ field }) => (<Checkbox id="privacyPolicy-contact" checked={field.value} onCheckedChange={field.onChange} />)} />
                                     <div className="grid gap-1.5 leading-none">
-                                        <Label htmlFor="privacyPolicy-contact" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{t('form.privacyAccept')} <a href="/politica-privacitat.html" target="_blank" rel="noopener noreferrer" className="underline text-red-600 hover:text-red-800">{t('form.privacyPolicy')}</a>.</Label>
+                                        <Label htmlFor="privacyPolicy-contact" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                            {t('form.privacyAccept')}{' '}
+                                            <Link href="/politica_de_privacitat" target="_blank" rel="noopener noreferrer" className="underline text-red-600 hover:text-red-800">
+                                                {t('form.privacyPolicy')}
+                                            </Link>
+                                            .
+                                        </Label>
                                         {errors.privacyPolicy && <p className="text-red-500 text-sm mt-1">{errors.privacyPolicy.message}</p>}
                                     </div>
                                 </div>

@@ -24,6 +24,7 @@ import type { Motorhome } from '@/types';
 // ✅ Importem les imatges locals que es necessiten en aquesta pàgina
 import heroImage from '@/../public/images/autocaravanes/perfilAutocaravana.jpg';
 import logoImage from '@/../public/images/logo-garatge-estacio.png';
+import Link from 'next/link';
 
 
 const LloguerAutocaravanes = () => {
@@ -203,17 +204,16 @@ const LloguerAutocaravanes = () => {
             />
           )}
         />
-        <label htmlFor="privacyPolicy" className="text-sm">
-          {t('form.privacyAccept')}{' '}
-          <a
-            href="/politica-privacitat.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline text-red-600 hover:text-red-800"
-          >
-            {t('form.privacyPolicy')}
-          </a>.
-        </label>
+                <div className="grid gap-1.5 leading-none">
+                                        <Label htmlFor="privacyPolicy-contact" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                            {t('form.privacyAccept')}{' '}
+                                            <Link href="/politica_de_privacitat" target="_blank" rel="noopener noreferrer" className="underline text-red-600 hover:text-red-800">
+                                                {t('form.privacyPolicy')}
+                                            </Link>
+                                            .
+                                        </Label>
+                                        {errors.privacyPolicy && <p className="text-red-500 text-sm mt-1">{errors.privacyPolicy.message}</p>}
+                                    </div>
       </div>
       {errors.privacyPolicy && <p className="text-red-500 text-sm">{errors.privacyPolicy.message}</p>}
 
