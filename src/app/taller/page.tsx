@@ -8,8 +8,9 @@ import Image from 'next/image';
 import * as z from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { addDays, format, isBefore } from 'date-fns';
 
-import { Wrench, Settings, Phone, ArrowRight, Loader2, Car, BatteryCharging, Wind, Shield } from 'lucide-react';
+import { Wrench, Settings, Phone, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
@@ -18,23 +19,39 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from "@/components/ui/checkbox";
 
-const Taller = () => {
-    const { t } = useTranslation();
-    const { toast } = useToast();
+import bannerTaller from '@/../public/images/banner-taller.avif';
 
-    // ✅ FINAL FIX: Changed z.literal to z.boolean().refine()
+// Importacions d'imatges locals
+import canviPneumatics from "@/../public/images/servies/neumatics.jpeg";
+import canviAmortidors from "@/../public/images/servies/canviAmortidors.jpeg";
+import canviBateria from "@/../public/images/servies/canviBateria.jpeg";
+import canvimanteniment from "@/../public/images/servies/manteniment.jpeg";
+import canvipastilelsFre from "@/../public/images/servies/pastillesdefre.jpeg";
+import canviProPostITV from "@/../public/images/servies/proPostitv.jpeg";
+
+const Taller = () => {
+    const { t, i18n } = useTranslation(); // Assegura't de tenir 'i18n' disponible des d'aquest hook
+    const { toast } = useToast();
+    
+    const minBookingDate = addDays(new Date(), 3);
+    const minBookingDateString = format(minBookingDate, 'yyyy-MM-dd');
+
     const appointmentSchema = useMemo(() => z.object({
         name: z.string().min(2, t('validation.nameRequired')),
         email: z.string().email(t('validation.emailInvalid')),
         phone: z.string().min(9, t('validation.phoneInvalid')),
         service: z.string().nonempty(t('validation.serviceRequired')),
-        date: z.string().nonempty(t('validation.dateRequired')),
+        date: z.string()
+            .nonempty(t('validation.dateRequired'))
+            .refine(date => !isBefore(new Date(date), new Date(minBookingDateString)), {
+                message: `La reserva ha de ser com a mínim 3 dies a partir d'avui.`,
+            }),
         time: z.string().nonempty(t('validation.timeRequired')),
         message: z.string().optional(),
         privacyPolicy: z.boolean().refine(val => val === true, {
             message: t('validation.privacyRequired'),
         }),
-    }), [t]);
+    }), [t, minBookingDateString]);
 
     const { control, register, handleSubmit, formState: { errors, isSubmitting, isValid }, reset, watch, setValue } = useForm({
         resolver: zodResolver(appointmentSchema),
@@ -51,13 +68,13 @@ const Taller = () => {
     useEffect(() => {
         if (selectedDate) {
             const day = new Date(selectedDate).getUTCDay();
-            if (day === 0 || day === 6) { // Sunday or Saturday
+            if (day === 0 || day === 6) {
                 setAvailableSlots([]);
                 return;
             }
             setIsLoadingSlots(true);
             setAvailableSlots([]);
-            setValue('time', ''); // Reset selected time
+            setValue('time', '');
             
             const fetchAvailableSlots = async () => {
                 try {
@@ -83,10 +100,17 @@ const Taller = () => {
 
     const onSubmit = async (data: z.infer<typeof appointmentSchema>) => {
         try {
+             // ✅ Creem un nou objecte per afegir l'idioma
+            const formData = {
+                ...data,
+                lang: i18n.language.startsWith('es') ? 'es' : 'ca',
+            };
             const response = await fetch(`/api/cites/crear`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                // ✅ Enviem el nou objecte que inclou l'idioma
+
+                body: JSON.stringify(formData),
             });
             const responseData = await response.json();
             if (!response.ok) {
@@ -96,17 +120,17 @@ const Taller = () => {
             reset();
             setIsBookingOpen(false);
         } catch (error: any) {
-            toast({ title: t('toast.submitErrorTitle'), description: t('toast.submitErrorDescription', { errorMessage: error.message }), variant: "destructive" });
+            toast({ title: t('toast.submitErrorTitle'), description: error.message, variant: "destructive" });
         }
     };
 
     const services = useMemo(() => [
-        { id: 1, icon: Settings, title: t('workshopServices.tires'), description: t('workshopServices.tiresDesc') },
-        { id: 2, icon: Shield, title: t('workshopServices.brakes'), description: t('workshopServices.brakesDesc') },
-        { id: 3, icon: BatteryCharging, title: t('workshopServices.battery'), description: t('workshopServices.batteryDesc') },
-        { id: 4, icon: Car, title: t('workshopServices.suspension'), description: t('workshopServices.suspensionDesc') },
-        { id: 5, icon: Wind, title: t('workshopServices.ac'), description: t('workshopServices.acDesc') },
-        { id: 6, icon: Wrench, title: t('workshopServices.itv'), description: t('workshopServices.itvDesc') },
+        { id: 1, title: t('workshopServices.tires'), description: t('workshopServices.tiresDesc'), image: canviPneumatics },
+        { id: 2, title: t('workshopServices.brakes'), description: t('workshopServices.brakesDesc'), image: canvipastilelsFre },
+        { id: 3, title: t('workshopServices.battery'), description: t('workshopServices.batteryDesc'), image: canviBateria },
+        { id: 4, title: t('workshopServices.suspension'), description: t('workshopServices.suspensionDesc'), image: canviAmortidors },
+        { id: 5, title: t('workshopServices.ac'), description: t('workshopServices.acDesc'), image: canvimanteniment },
+        { id: 6, title: t('workshopServices.itv'), description: t('workshopServices.itvDesc'), image: canviProPostITV },
     ], [t]);
 
     return (
@@ -114,7 +138,7 @@ const Taller = () => {
             <section className="relative py-24 bg-gray-900 text-white">
                 <div className="absolute inset-0">
                     <Image 
-                        src="https://images.gestionaweb.cat/2611/img-960-412/banner8-1963893.jpg?v=1" 
+                        src={bannerTaller}
                         alt={t('workshopPage.title')}
                         fill
                         priority
@@ -127,20 +151,59 @@ const Taller = () => {
                 </div>
             </section>
 
-            <section id="services" className="py-20">
-                <div className="container mx-auto px-4">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{t('workshopPage.servicesTitle')}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {services.map((service) => (
-                            <motion.div key={service.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="bg-gray-50 p-8 rounded-lg shadow-md text-center flex flex-col items-center">
-                                <div className="bg-red-100 text-red-600 rounded-full p-4 mb-4"><service.icon className="h-8 w-8" /></div>
-                                <h3 className="text-2xl font-bold mb-2">{service.title}</h3>
-                                <p className="text-gray-600">{service.description}</p>
-                            </motion.div>
-                        ))}
-                    </div>
+            <section id="services" className="py-24 bg-gradient-to-b from-red-50 via-white to-red-50">
+  <div className="container mx-auto px-4">
+    <motion.h2
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.7 }}
+      className="text-4xl md:text-5xl font-extrabold text-center text-red-700 mb-16"
+    >
+      {t('workshopPage.servicesTitle')}
+    </motion.h2>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+      {services.map((service) => (
+        <motion.div
+          key={service.id}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="group relative flex flex-col overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl bg-white cursor-pointer transition-all duration-500"
+          onClick={() => handleServiceSelection(service.title)}
+        >
+          {/* IMATGE A SOBRE AMB PUNTES ARRODONIDES */}
+          <div className="relative w-full h-[24vh] rounded-t-3xl overflow-hidden">
+                <Image
+                    src={service.image}
+                    alt={service.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
                 </div>
-            </section>
+
+          {/* CONTINGUT TEXT A SOTA AMB FONS LLEUGER */}
+          <div className="p-8 bg-white flex flex-col justify-between rounded-b-3xl">
+            <div className="mb-2">
+              <h3 className="text-1xl md:text-2xl font-bold text-gray-900 mb-2">
+                {service.title}
+              </h3>
+              <p className="text-gray-700 text-sg leading-relaxed">
+                {service.description}
+              </p>
+            </div>
+
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
+
+
 
             <section id="appointment-form" className="py-20 bg-gray-100">
                 <div className="container mx-auto px-4">
@@ -179,7 +242,25 @@ const Taller = () => {
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><Label htmlFor="name">{t('form.labelName')}</Label><Input id="name" {...register("name")} placeholder={t('form.namePlaceholder')}/>{errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}</div><div><Label htmlFor="email">{t('form.labelEmail')}</Label><Input id="email" type="email" {...register("email")} placeholder={t('form.emailPlaceholder')}/>{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}</div></div>
                         <div><Label htmlFor="phone">{t('form.labelPhone')}</Label><Input id="phone" {...register("phone")} placeholder={t('form.phonePlaceholder')}/>{errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><Label htmlFor="date">{t('form.labelDate')}</Label><Input id="date" type="date" {...register("date")} min={new Date().toISOString().split('T')[0]}/>{errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}</div><div><Label htmlFor="time">{t('form.labelTime')}</Label><div className="relative">{isLoadingSlots && <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-gray-400" />}<select {...register("time")} id="time" disabled={!selectedDate || isLoadingSlots || availableSlots.length === 0} className="w-full p-2 border rounded-md bg-white disabled:bg-gray-100 focus:ring-2 focus:ring-red-500"><option value="">{isLoadingSlots ? t('form.loading') : (availableSlots.length > 0 ? t('form.selectTime') : t('form.noSlots'))}</option>{availableSlots.map(slot => <option key={slot} value={slot}>{slot}</option>)}</select></div>{errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}</div></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <Label htmlFor="date">{t('form.labelDate')}</Label>
+                                {/* ✅ NEW: Set the 'min' attribute on the date input */}
+                                <Input id="date" type="date" {...register("date")} min={minBookingDateString}/>
+                                {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="time">{t('form.labelTime')}</Label>
+                                <div className="relative">
+                                    {isLoadingSlots && <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-gray-400" />}
+                                    <select {...register("time")} id="time" disabled={!selectedDate || isLoadingSlots || availableSlots.length === 0} className="w-full p-2 border rounded-md bg-white disabled:bg-gray-100 focus:ring-2 focus:ring-red-500">
+                                        <option value="">{isLoadingSlots ? t('form.loading') : (availableSlots.length > 0 ? t('form.selectTime') : t('form.noSlots'))}</option>
+                                        {availableSlots.map(slot => <option key={slot} value={slot}>{slot}</option>)}
+                                    </select>
+                                </div>
+                                {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}
+                            </div>
+                        </div>
                         <div><Label htmlFor="message">{t('form.labelMessageOptional')}</Label><Textarea id="message" {...register("message")} placeholder={t('form.messagePlaceholder')} /></div>
                         <div className="items-top flex space-x-2">
                             <Controller name="privacyPolicy" control={control} render={({ field }) => (<Checkbox id="privacyPolicy-taller" checked={field.value} onCheckedChange={field.onChange} />)}/>

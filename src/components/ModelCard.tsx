@@ -1,13 +1,18 @@
+// /components/ModelCard.tsx
+
 "use client";
 
-import Image from 'next/image';
+// PAS 1: Importa Link i StaticImageData
+import Link from 'next/link';
+import Image, { StaticImageData } from 'next/image';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// PAS 2: Actualitza el tipus de 'image' a StaticImageData
 type Model = {
   name: string;
-  image: string;
+  image: StaticImageData;
   description: string;
   features: string[];
 };
@@ -27,11 +32,12 @@ const ModelCard = ({ model, buttonClass = 'bg-gray-900 hover:bg-gray-800' }: Mod
   >
     <div className="relative overflow-hidden h-56">
       <Image
-        src={model.image}
+        src={model.image} // Ara això funciona perfectament
         alt={model.name}
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         className="object-cover group-hover:scale-105 transition-transform duration-300"
+        placeholder="blur" // Afegeix l'efecte de càrrega per consistència
       />
     </div>
     <div className="p-6 flex flex-col flex-grow">
@@ -45,8 +51,12 @@ const ModelCard = ({ model, buttonClass = 'bg-gray-900 hover:bg-gray-800' }: Mod
           </li>
         ))}
       </ul>
-      <Button className={`w-full mt-auto ${buttonClass}`}>
-        Demanar més informació
+      {/* PAS 3: Embolcalla el botó amb Link i fes servir 'asChild' */}
+      <Button asChild className={`w-full mt-auto ${buttonClass}`}>
+        {/* Opcionalment, passem el nom del model a la URL de contacte */}
+        <Link href={`/contacte?model=${encodeURIComponent(model.name)}`}>
+          Demanar més informació
+        </Link>
       </Button>
     </div>
   </motion.div>

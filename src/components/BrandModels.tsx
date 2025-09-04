@@ -1,18 +1,21 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ModelCard from './ModelCard'; // Assegura't que ModelCard també tingui els seus tipus definits
+import ModelCard from './ModelCard';
+// PAS 1: Importa el tipus StaticImageData de Next.js
+import { StaticImageData } from 'next/image';
 
-// ✅ CORRECCIÓ: Definim l'estructura de l'objecte 'Model'
+// Definim l'estructura de l'objecte 'Model'
 interface Model {
   name: string;
   type: string;
-  image: string;
+  // PAS 2: Canvia el tipus de 'string' a 'StaticImageData'
+  image: StaticImageData; 
   description: string;
   features: string[];
 }
 
-// ✅ CORRECCIÓ: Definim l'estructura de les props que rep el component
+// Definim l'estructura de les props que rep el component
 interface BrandModelsProps {
   models: Model[];
   brandName: string;
@@ -47,7 +50,7 @@ const BrandModels = ({ models, brandName, buttonClass }: BrandModelsProps) => {
                   .filter((m: Model) => type === 'Tots' || m.type === type)
                   .map((model: Model) => (
                     <ModelCard key={model.name} model={model} buttonClass={buttonClass} />
-                ))}
+                  ))}
               </div>
             </TabsContent>
           ))}

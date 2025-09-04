@@ -1,80 +1,145 @@
-// src/lib/email.ts
 import { Resend } from 'resend';
 import { format } from 'date-fns';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = 'info@garatgeestacio.com';
-const FROM_EMAIL = 'Garatge Estació <onboarding@resend.dev>'; // Important: El domini ha d'estar verificat a Resend
+const FROM_EMAIL = 'Garatge Estació <web@garatgeestacio.com>';
 
-// --- Email per a Cites del Taller ---
-
+/**
+ * Envia els emails de confirmació per a una cita al taller.
+ */
 export async function sendWorkshopAppointmentEmails(data: any) {
-  const subjectCustomer = "✅ Cita al taller confirmada - Garatge Estació";
-  const subjectAdmin = `🛠️ Nova Cita al Taller: ${data.service}`;
+  const appointmentDate = new Date(`${data.date}T${data.time}`);
+  const formattedDate = format(appointmentDate, 'dd/MM/yyyy');
+  const cancellationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/cites/cancelar?token=${data.cancellationToken}`;
+  const addToCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Cita Taller: ${data.service}`)}&dates=${format(appointmentDate, "yyyyMMdd'T'HHmmss")}/${format(new Date(appointmentDate.getTime() + 60 * 60 * 1000), "yyyyMMdd'T'HHmmss")}&details=${encodeURIComponent(`Servei: ${data.service}\nClient: ${data.name}`)}&location=${encodeURIComponent("Garatge Estació, La Bisbal d'Empordà")}`;
+  const lang: 'ca' | 'es' = (data.lang === 'es') ? 'es' : 'ca';
 
-  // 1. Email per al client
-  await resend.emails.send({
+  const clientTexts = {
+    ca: {
+        subject: "✅ Cita al taller confirmada - Garatge Estació",
+        title: "La teva cita està confirmada!",
+        greeting: `Hola, <strong>${data.name}</strong>,`,
+        body: "Ens complau confirmar que la teva cita ha estat registrada correctament. T'esperem!",
+        summaryTitle: "Detalls de la teva cita",
+        service: "Servei",
+        date: "Data",
+        hour: "Hora",
+        yourMessage: "El teu missatge",
+        addToCalendar: "Afegeix a Google Calendar",
+        manageTitle: "Gestiona la teva cita",
+        manageBody: "Si necessites cancel·lar la teva cita, pots fer-ho a través del següent enllaç.",
+        cancelButton: "Cancel·lar la meva cita"
+    },
+    es: {
+        subject: "✅ Cita en el taller confirmada - Garatge Estació",
+        title: "¡Tu cita está confirmada!",
+        greeting: `Hola, <strong>${data.name}</strong>,`,
+        body: "Nos complace confirmar que tu cita ha sido registrada correctamente. ¡Te esperamos!",
+        summaryTitle: "Detalles de tu cita",
+        service: "Servicio",
+        date: "Fecha",
+        hour: "Hora",
+        yourMessage: "Tu mensaje",
+        addToCalendar: "Añadir a Google Calendar",
+        manageTitle: "Gestiona tu cita",
+        manageBody: "Si necesitas cancelar tu cita, puedes hacerlo a través del siguiente enlace.",
+        cancelButton: "Cancelar mi cita"
+    }
+  };
+
+  const texts = clientTexts[lang];
+
+  // --- 1. Email per al client ---
+  // ✅ CORRECCIÓ: Declarem la constant per guardar el resultat
+  const { data: clientEmailData, error: clientEmailError } = await resend.emails.send({
     from: FROM_EMAIL,
     to: data.email,
-    subject: subjectCustomer,
-    html: `<h1>Hola ${data.name},</h1>
-           <p>Hem rebut i confirmat la teva cita per al servei de <strong>${data.service}</strong>.</p>
-           <p><strong>Data:</strong> ${format(new Date(data.date), 'dd/MM/yyyy')}</p>
-           <p><strong>Hora:</strong> ${data.time}</p>
-           <p>Gràcies per la teva confiança. T'esperem!</p>
-           <p><strong>Garatge Estació</strong></p>`
+    subject: texts.subject,
+    replyTo: ADMIN_EMAIL,
+    html: `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8"><title>${texts.subject}</title><style>body{margin:0;padding:0;background-color:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}.button-cancel{background-color:#6b7280;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block}.button-calendar{background-color:#16a34a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block}</style></head><body style="margin:0;padding:0;background-color:#f4f4f4"><table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="background-color:#f4f4f4"><tr><td align="center"><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff"><tr><td align="center" style="padding:20px 0;background-color:#111827"><img src="https://res.cloudinary.com/dvqhfapep/image/upload/v1754671222/fadfasdfasd-removebg-preview_iyvhre.png" alt="Garatge Estació Logo" width="200"></td></tr><tr><td style="padding:40px;color:#333333"><h1 style="margin:0 0 20px;font-size:28px;font-weight:bold;color:#111827">${texts.title}</h1><p style="margin:0 0 20px;font-size:18px;line-height:1.5">${texts.greeting}</p><p style="margin:0 0 30px;font-size:18px;line-height:1.5">${texts.body}</p><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:30px"><tr><td style="background-color:#f8f8f8;padding:20px;border-radius:8px"><h2 style="margin:0 0 15px;font-size:20px;font-weight:bold;color:#111827">${texts.summaryTitle}</h2><p style="margin:0 0 10px;font-size:18px"><strong>${texts.service}:</strong> ${data.service}</p><p style="margin:0 0 10px;font-size:18px"><strong>${texts.date}:</strong> ${formattedDate}</p><p style="margin:0;font-size:18px"><strong>${texts.hour}:</strong> ${data.time}</p>${data.message ? `<p style="margin:10px 0 0;font-size:18px"><strong>${texts.yourMessage}:</strong> ${data.message}</p>` : ''}</td></tr></table><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:30px;text-align:center"><tr><td><a href="${addToCalendarUrl}" target="_blank" class="button-calendar">${texts.addToCalendar}</a></td></tr></table><h2 style="margin:40px 0 15px;font-size:20px;font-weight:bold;color:#111827;text-align:center;border-top:1px solid #eeeeee;padding-top:30px">${texts.manageTitle}</h2><p style="margin:0 0 20px;font-size:16px;line-height:1.5;text-align:center">${texts.manageBody}</p><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td align="center"><a href="${cancellationUrl}" class="button-cancel">${texts.cancelButton}</a></td></tr></table></td></tr><tr><td style="background-color:#f4f4f4;padding:20px;text-align:center;color:#666666;font-size:12px"><p style="margin:0 0 10px">Garatge Estació &copy; ${new Date().getFullYear()}. Tots els drets reservats.</p></td></tr></table></td></tr></table></body></html>`
   });
 
-  // 2. Email per a l'administrador
-  await resend.emails.send({
+  if (clientEmailError) {
+    console.error("Error en enviar l'email al client:", clientEmailError);
+    throw new Error("No s'ha pogut enviar l'email de confirmació al client.");
+  }
+
+  // --- 2. Email per a l'administrador ---
+  // ✅ CORRECCIÓ: Declarem la constant per guardar el resultat
+  const { data: adminEmailData, error: adminEmailError } = await resend.emails.send({
     from: FROM_EMAIL,
     to: ADMIN_EMAIL,
-    subject: subjectAdmin,
-    html: `<h2>Nova Cita de Taller</h2>
-           <p><strong>Client:</strong> ${data.name}</p>
-           <p><strong>Email:</strong> ${data.email}</p>
-           <p><strong>Telèfon:</strong> ${data.phone}</p>
-           <p><strong>Servei:</strong> ${data.service}</p>
-           <p><strong>Data:</strong> ${format(new Date(data.date), 'dd/MM/yyyy')} a les ${data.time}</p>
-           <p><strong>Missatge:</strong> ${data.message || 'Cap'}</p>`
+    subject: `🛠️ Nova Cita al Taller: ${data.service}`,
+    replyTo: data.email,
+    html: `<!DOCTYPE html><html lang="ca"><head><meta charset="UTF-8"><title>Nova Cita</title></head><body style="font-family:Arial,sans-serif;color:#333;background-color:#f9f9f9;padding:20px"><div style="max-width:600px;margin:0 auto;background:#ffffff;padding:20px;border-radius:10px"><h2 style="color:#111827;text-align:center">Nova Cita Registrada</h2><table style="width:100%;border-collapse:collapse;margin-top:20px"><tr><td style="padding:8px;border:1px solid #ddd"><strong>Nom:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.name}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Email:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.email}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Telèfon:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.phone}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Servei:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.service}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Data:</strong></td><td style="padding:8px;border:1px solid #ddd">${formattedDate}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Hora:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.time}</td></tr>${data.message ? `<tr><td style="padding:8px;border:1px solid #ddd"><strong>Missatge:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.message}</td></tr>` : ''}</table></div></body></html>`
   });
+  
+  if (adminEmailError) {
+    console.error("Error en enviar l'email a l'administrador:", adminEmailError);
+  }
 }
 
 
-// --- Email per a Reserves d'Autocaravanes ---
-
+/**
+ * Envia els emails per a reserves d'autocaravanes.
+ */
 export async function sendMotorhomeBookingEmails(data: any) {
   const startDate = new Date(data.start_date);
   const endDate = new Date(data.end_date);
   const days = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24) + 1;
+  const formattedStartDate = format(startDate, 'dd/MM/yyyy');
+  const formattedEndDate = format(endDate, 'dd/MM/yyyy');
+  const lang: 'ca' | 'es' = (data.lang === 'es') ? 'es' : 'ca';
 
-  const subjectCustomer = "🏕️ Sol·licitud de Reserva Rebuda - Garatge Estació";
-  const subjectAdmin = `🚐 Nova Reserva d'Autocaravana: ${data.Vehicle_Name}`;
+  const clientTexts = {
+    ca: {
+      subject: "🏕️ Sol·licitud de Reserva Rebuda - Garatge Estació",
+      title: "Sol·licitud de Reserva Rebuda!",
+      greeting: `Hola, <strong>${data.customer_name}</strong>,`,
+      body1: "Hem rebut la teva sol·licitud per llogar una de les nostres autocaravanes. Estem molt contents que hagis triat Garatge Estació per a la teva pròxima aventura!",
+      body2: "Un membre del nostre equip revisarà la disponibilitat i et contactarà al més aviat possible per a <strong>confirmar la reserva definitivament</strong> i explicar-te els següents passos (contracte, paga i senyal, etc.).",
+      summaryTitle: "Resum de la teva sol·licitud",
+      vehicle: "Vehicle",
+      pickup: "Data de Recollida",
+      return: "Data de Retorn",
+      duration: "Durada",
+      days: "dies",
+      closing: "Si tens qualsevol dubte, estem a la teva disposició."
+    },
+    es: {
+      subject: "🏕️ Solicitud de Reserva Recibida - Garatge Estació",
+      title: "¡Solicitud de Reserva Recibida!",
+      greeting: `Hola, <strong>${data.customer_name}</strong>,`,
+      body1: "Hemos recibido tu solicitud para alquilar una de nuestras autocaravanas. ¡Estamos muy contentos de que hayas elegido Garatge Estació para tu próxima aventura!",
+      body2: "Un miembro de nuestro equipo revisará la disponibilidad y te contactará lo antes posible para <strong>confirmar la reserva definitivamente</strong> y explicarte los siguientes pasos (contrato, paga y señal, etc.).",
+      summaryTitle: "Resumen de tu solicitud",
+      vehicle: "Vehículo",
+      pickup: "Fecha de Recogida",
+      return: "Fecha de Devolución",
+      duration: "Duración",
+      days: "días",
+      closing: "Si tienes cualquier duda, estamos a tu disposición."
+    }
+  };
+  
+  const texts = clientTexts[lang];
 
-  // 1. Email per al client
+  // --- 1. Email per al client (amb multi-idioma) ---
   await resend.emails.send({
     from: FROM_EMAIL,
     to: data.customer_email,
-    subject: subjectCustomer,
-    html: `<h1>Hola ${data.customer_name},</h1>
-           <p>Hem rebut correctament la teva sol·licitud de reserva per a l'autocaravana <strong>${data.Vehicle_Name}</strong>.</p>
-           <p><strong>Dates:</strong> del ${format(startDate, 'dd/MM/yyyy')} al ${format(endDate, 'dd/MM/yyyy')} (${days} dies).</p>
-           <p>En breu, un membre del nostre equip es posarà en contacte amb tu per confirmar tots els detalls i formalitzar la reserva.</p>
-           <p>Gràcies per triar-nos per a la teva aventura!</p>
-           <p><strong>Garatge Estació</strong></p>`
+    subject: texts.subject,
+    replyTo: ADMIN_EMAIL,
+    html: `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8"><title>${texts.subject}</title></head><body style="margin:0;padding:0;background-color:#f4f4f4;font-family:sans-serif"><table role="presentation" width="100%"><tr><td align="center" style="padding:20px"><table role="presentation" width="100%" style="max-width:600px;margin:0 auto;background-color:#fff"><tr><td align="center" style="padding:20px;background-color:#111827"><img src="https://res.cloudinary.com/dvqhfapep/image/upload/v1754671222/fadfasdfasd-removebg-preview_iyvhre.png" alt="Logo" width="200"></td></tr><tr><td style="padding:40px"><h1 style="font-size:28px;color:#111827">${texts.title}</h1><p style="font-size:18px;line-height:1.5">${texts.greeting}</p><p style="font-size:18px;line-height:1.5">${texts.body1}</p><p style="font-size:18px;line-height:1.5">${texts.body2}</p><div style="background-color:#f8f8f8;padding:20px;border-radius:8px;margin:20px 0"><h2 style="font-size:20px;margin:0 0 15px">${texts.summaryTitle}</h2><p style="font-size:18px"><strong>${texts.vehicle}:</strong> ${data.Vehicle_Name}</p><p style="font-size:18px"><strong>${texts.pickup}:</strong> ${formattedStartDate}</p><p style="font-size:18px"><strong>${texts.return}:</strong> ${formattedEndDate}</p><p style="font-size:18px"><strong>${texts.duration}:</strong> ${days} ${texts.days}</p></div><p style="font-size:18px;line-height:1.5">${texts.closing}</p></td></tr><tr><td style="background-color:#f4f4f4;padding:20px;text-align:center;font-size:12px;color:#666"><p style="margin:0">Garatge Estació &copy; ${new Date().getFullYear()}</p></td></tr></table></td></tr></table></body></html>`
   });
 
-  // 2. Email per a l'administrador
+  // --- 2. Email per a l'administrador (es queda en català) ---
   await resend.emails.send({
     from: FROM_EMAIL,
     to: ADMIN_EMAIL,
-    subject: subjectAdmin,
-    html: `<h2>Nova Sol·licitud de Reserva d'Autocaravana</h2>
-           <p><strong>Client:</strong> ${data.customer_name}</p>
-           <p><strong>Email:</strong> ${data.customer_email}</p>
-           <p><strong>Telèfon:</strong> ${data.customer_phone}</p>
-           <hr>
-           <p><strong>Vehicle:</strong> ${data.Vehicle_Name}</p>
-           <p><strong>Dates:</strong> ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')} (${days} dies).</p>`
+    subject: `🚐 Nova Reserva d'Autocaravana: ${data.Vehicle_Name}`,
+    replyTo: data.customer_email,
+    html: `<!DOCTYPE html><html lang="ca"><head><meta charset="UTF-8"><title>Nova Reserva Autocaravana</title></head><body style="font-family:Arial,sans-serif;color:#333;background-color:#f9f9f9;padding:20px"><div style="max-width:600px;margin:0 auto;background:#ffffff;padding:20px;border-radius:10px"><h2 style="color:#111827;text-align:center">Nova Reserva d'Autocaravana</h2><table style="width:100%;border-collapse:collapse;margin-top:20px"><tr><td style="padding:8px;border:1px solid #ddd"><strong>Client:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.customer_name}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Email:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.customer_email}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Telèfon:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.customer_phone}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Autocaravana:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.Vehicle_Name}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Data Inici:</strong></td><td style="padding:8px;border:1px solid #ddd">${formattedStartDate}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Data Fi:</strong></td><td style="padding:8px;border:1px solid #ddd">${formattedEndDate}</td></tr><tr><td style="padding:8px;border:1px solid #ddd"><strong>Durada:</strong></td><td style="padding:8px;border:1px solid #ddd">${days} dies</td></tr></table></div></body></html>`
   });
 }
