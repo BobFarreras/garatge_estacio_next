@@ -109,3 +109,34 @@ export async function deleteGoogleCalendarEvent(eventId: string): Promise<boolea
     return false;
   }
 }
+export async function createGoogleCalendarVehicleEvent(data: any, airtableRecordId: string): Promise<{ id: string, htmlLink: string } | null> {
+  try {
+      const startDate = new Date(data.start_date);
+      const endDate = new Date(data.end_date);
+      const googleEndDate = addDays(endDate, 1); // Google Calendar exclou l'últim dia en esdeveniments de dia sencer
+  
+      const event = {
+        id: generateEventId(airtableRecordId),
+        // ✅ CANVI: Adaptem el resum per a vehicles
+        summary: `Lloguer Vehicle: ${data.vehicle_name} - ${data.customer_name}`,
+        description: `Client: ${data.customer_name}\nEmail: ${data.customer_email}\nTelèfon: ${data.customer_phone}`,
+        start: { date: formatDate(startDate, 'yyyy-MM-dd') },
+        end: { date: formatDate(googleEndDate, 'yyyy-MM-dd') },
+        attendees: [{ email: data.customer_email, displayName: data.customer_name }],
+        reminders: { useDefault: true },
+      };
+  
+      const createdEvent = await calendar.events.insert({
+          calendarId: calendarId,
+          requestBody: event,
+          sendUpdates: 'none',
+      });
+  
+      if (!createdEvent.data.id || !createdEvent.data.htmlLink) throw new Error("L'esdeveniment no s'ha creat correctament a Google.");
+  
+      return { id: createdEvent.data.id, htmlLink: createdEvent.data.htmlLink };
+  } catch (error) {
+      console.error('Google Calendar API error (Lloguer Vehicle): ', error);
+      return null;
+  }
+}

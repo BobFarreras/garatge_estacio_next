@@ -13,21 +13,28 @@
     "metaDescription": "Serveis de taller mecànic a La Bisbal. Demana cita prèvia online per a manteniment i pneumàtics.",
     "title": "El Teu Taller de Confiança",
     "subtitle": "Més de 30 anys cuidant del teu vehicle.",
-    "servicesTitle": "Els Nostres Serveis"
+    "servicesTitle": "Els Nostres Serveis de Taller",
+    "servicesSubtitle": "Experts en la cura del teu vehicle. Fes clic en un servei per demanar la teva cita."
   },
   "workshopServices": {
     "tires": "Canvi de pneumàtics",
-    "tiresDesc": "Substitució, equilibrat i alineació de rodes.",
-    "brakes": "Canvi de pastilles de frens",
-    "brakesDesc": "Revisió i substitució de pastilles i discs de fre.",
+    "tiresDesc": "Substitució, equilibrat i alineació de rodes per a una conducció segura.",
+    "brakes": "Revisió de frens",
+    "brakesDesc": "Revisió i substitució professional de pastilles i discs de fre.",
     "battery": "Canvi de bateria",
-    "batteryDesc": "Diagnòstic i instal·lació de bateries noves.",
-    "suspension": "Canvi d'amortidors",
-    "suspensionDesc": "Inspecció i canvi del sistema de suspensió.",
+    "batteryDesc": "Diagnòstic complet del sistema de càrrega i instal·lació de bateries noves.",
+    "suspension": "Reparació de suspensió",
+    "suspensionDesc": "Inspecció i canvi d'amortidors i components del sistema de suspensió.",
     "ac": "Manteniment A/C",
-    "acDesc": "Recàrrega de gas i manteniment del sistema de climatització.",
-    "itv": "Pre - Post ITV",
-    "itvDesc": "Revisió completa pre-ITV i gestió de reparacions."
+    "acDesc": "Recàrrega de gas i manteniment integral del sistema de climatització.",
+    "itv": "Revisió Pre-ITV",
+    "itvDesc": "Revisió completa dels punts clau per superar la ITV sense sorpreses.",
+    "heavy": "Vehicles Pesants",
+    "heavyDesc": "Manteniment i reparació especialitzada per a camions i furgonetes.",
+    "integral": "Reparació Integral",
+    "integralDesc": "Serveis complets de planxa i pintura per a una restauració total.",
+    "other": "Altres Serveis",
+    "otherDesc": "Tens una altra necessitat? Contacta'ns i t'oferirem una solució a mida."
   },
   "form": {
     "namePlaceholder": "El teu nom",
@@ -84,7 +91,8 @@
   "otherRepairs": {
     "title": "Necessites un altre tipus de reparació?",
     "subtitle": "Per a diagnòstics de motor, frens, o altres consultes, contacta'ns directament.",
-    "contactNow": "Contactar Ara"
+    "contactNow": "Contactar Ara",
+    "contactWhatsApp": "Contacta per WhatsApp"
   },
   "contactPage": {
     "metaTitle": "Contacte - Garatge Estació",
@@ -202,7 +210,9 @@
     "toastSuccessTitle": "Reserva Sol·licitada!",
     "toastSuccessDescription": "La teva sol·licitud per al {vehicleName} ha estat enviada. Et contactarem per confirmar.",
     "toastErrorTitle": "Error en la reserva",
-    "toastErrorDescription": "No s'ha pogut processar la teva sol·licitud."
+    "toastErrorDescription": "No s'ha pogut processar la teva sol·licitud.",
+    "sending":"Enviant"
+    
   },
   "formErrors": {
       "nameRequired": "El nom és obligatori",
@@ -222,4 +232,6 @@
     "rental": "Per a reserves de vehicles o autocaravanes, visita la secció corresponent. Allà podràs veure la disponibilitat i preus.",
     "default": "Ho sento, no he entès la teva pregunta. Pots reformular-la o contactar amb nosaltres directament per a més ajuda."
   }
+
+
 }

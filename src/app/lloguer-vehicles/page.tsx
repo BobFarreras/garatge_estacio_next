@@ -26,14 +26,12 @@ const LloguerVehicles = () => {
     const { t, i18n } = useTranslation();
     const { toast } = useToast();
 
-    // ✅ CORRECCIÓ DEFINITIVA: Canviem z.literal per z.boolean().refine()
     const bookingSchema = useMemo(() => z.object({
         customer_name: z.string().min(2, t('validation.nameRequired')),
         customer_email: z.string().email(t('validation.emailInvalid')),
         customer_phone: z.string().min(9, t('validation.phoneInvalid')),
         start_date: z.string(),
         end_date: z.string(),
-        // Aquesta és la manera correcta de validar que un checkbox sigui obligatori
         privacyPolicy: z.boolean().refine(val => val === true, {
             message: t('validation.privacyRequired'),
         }),
@@ -96,12 +94,16 @@ const LloguerVehicles = () => {
 
     const onSubmit = async (data: z.infer<typeof bookingSchema>) => {
         if (!selectedVehicle) return;
+
         const bookingData = {
             ...data,
             vehicle_id: selectedVehicle.id,
             vehicle_name: selectedVehicle.name,
-            total_price: calculatePrice(data.start_date, data.end_date, selectedVehicle.pricing)
+            total_price: calculatePrice(data.start_date, data.end_date, selectedVehicle.pricing),
+            // ✅ CORRECCIÓ: Afegim l'idioma actual a les dades que enviem
+            lang: i18n.language || 'ca',
         };
+
         try {
             const response = await fetch('/api/vehicles/bookings', {
                 method: 'POST',
@@ -110,6 +112,7 @@ const LloguerVehicles = () => {
             });
             const responseData = await response.json();
             if (!response.ok) throw new Error(responseData.error || 'Error en processar la reserva.');
+            
             toast({ title: "✅ Reserva Sol·licitada!", description: `La teva sol·licitud per al ${selectedVehicle.name} ha estat enviada.` });
             reset();
             setIsDialogOpen(false);
@@ -182,27 +185,70 @@ const LloguerVehicles = () => {
                     </aside>
                 </div>
             </main>
+            {/* --- SECCIÓ DEL DIÀLEG DE RESERVA (MODIFICADA) --- */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('carRentalPage.bookingModalTitle')}</DialogTitle>
-                        <DialogDescription>{t('carRentalPage.bookingModalSubtitle', { vehicleName: selectedVehicle?.name, startDate: format(new Date(startDate), 'dd/MM/yyyy'), endDate: format(new Date(endDate), 'dd/MM/yyyy') })}</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                        <div className="grid gap-2"><Label>{t('carRentalPage.formFullName')}</Label><div className="relative"><User className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input {...register("customer_name")} /></div>{errors.customer_name && <p className="text-red-500 text-sm">{errors.customer_name.message}</p>}</div>
-                        <div className="grid gap-2"><Label>{t('carRentalPage.formEmail')}</Label><div className="relative"><Mail className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input type="email" {...register("customer_email")} /></div>{errors.customer_email && <p className="text-red-500 text-sm">{errors.customer_email.message}</p>}</div>
-                        <div className="grid gap-2"><Label>{t('carRentalPage.formPhone')}</Label><div className="relative"><Phone className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input type="tel" {...register("customer_phone")} /></div>{errors.customer_phone && <p className="text-red-500 text-sm">{errors.customer_phone.message}</p>}</div>
-                        
-                        <div className="flex items-center space-x-2">
-                           <Controller name="privacyPolicy" control={control} render={({ field }) => (
-                                <Checkbox id="privacyPolicy-vehicles" checked={field.value} onCheckedChange={field.onChange} />
-                           )} />
-                           <Label htmlFor="privacyPolicy-vehicles" className="text-sm font-normal">{t('form.privacyAccept')} <a href="/politica-privacitat.html" target="_blank" rel="noopener noreferrer" className="underline text-red-600 hover:text-red-800">{t('form.privacyPolicy')}</a>.</Label>
-                        </div>
-                        {errors.privacyPolicy && <p className="text-red-500 text-sm">{errors.privacyPolicy.message}</p>}
+                <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0 flex flex-col md:flex-row">
+                    
+                    {/* Columna Esquerra: Imatge (oculta en mòbil) */}
+                    <div className="hidden md:block md:w-1/2 relative">
+                        {selectedVehicle && (
+                            <Image
+                                src={selectedVehicle.image_url}
+                                alt={`Imatge de ${selectedVehicle.name}`}
+                                fill
+                                className="object-cover rounded-l-lg"
+                            />
+                        )}
+                    </div>
 
-                        <Button type="submit" disabled={isSubmitting} className="w-full bg-red-600 hover:bg-red-700">{isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Enviant...</> : t('carRentalPage.submitButton')}</Button>
-                    </form>
+                    {/* Columna Dreta: Formulari i Detalls */}
+                    <div className="w-full md:w-1/2 p-8 overflow-y-auto">
+                        <DialogHeader className="text-left mb-4">
+                            <DialogTitle className="text-2xl font-bold">{t('carRentalPage.bookingModalTitle')}</DialogTitle>
+                            <DialogDescription>
+                                {t('carRentalPage.bookingModalSubtitle', { 
+                                    vehicleName: selectedVehicle?.name, 
+                                    startDate: format(new Date(startDate), 'dd/MM/yyyy'), 
+                                    endDate: format(new Date(endDate), 'dd/MM/yyyy') 
+                                })}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label>{t('carRentalPage.formFullName')}</Label>
+                                <div className="relative"><User className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input {...register("customer_name")} /></div>
+                                {errors.customer_name && <p className="text-red-500 text-sm">{errors.customer_name.message}</p>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>{t('carRentalPage.formEmail')}</Label>
+                                <div className="relative"><Mail className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input type="email" {...register("customer_email")} /></div>
+                                {errors.customer_email && <p className="text-red-500 text-sm">{errors.customer_email.message}</p>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>{t('carRentalPage.formPhone')}</Label>
+                                <div className="relative"><Phone className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input type="tel" {...register("customer_phone")} /></div>
+                                {errors.customer_phone && <p className="text-red-500 text-sm">{errors.customer_phone.message}</p>}
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 pt-2">
+                               <Controller name="privacyPolicy" control={control} render={({ field }) => (
+                                   <Checkbox id="privacyPolicy-vehicles" checked={field.value} onCheckedChange={field.onChange} />
+                               )} />
+                               <Label htmlFor="privacyPolicy-vehicles" className="text-sm font-normal leading-tight">{t('form.privacyAccept')} <a href="/politica-privacitat.html" target="_blank" rel="noopener noreferrer" className="underline text-red-600 hover:text-red-800">{t('form.privacyPolicy')}</a>.</Label>
+                            </div>
+                            {errors.privacyPolicy && <p className="text-red-500 text-sm">{errors.privacyPolicy.message}</p>}
+
+                            <Button type="submit" disabled={isSubmitting} className="w-full bg-red-600 hover:bg-red-700 !mt-6">
+                                {isSubmitting 
+                                    ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> {t('carRentalPage.sending')}</> 
+                                    : t('carRentalPage.submitButton')
+                                }
+                            </Button>
+                        </form>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

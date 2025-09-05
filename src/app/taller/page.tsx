@@ -4,13 +4,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import * as z from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addDays, format, isBefore } from 'date-fns';
 
-import { Wrench, Settings, Phone, ArrowRight, Loader2 } from 'lucide-react';
+import { Wrench, Settings, Phone, ArrowRight, Loader2, Car, BatteryCharging, Wind, Shield, MessageCircle, Truck, Building, MoreHorizontal, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
@@ -21,16 +21,32 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import bannerTaller from '@/../public/images/banner-taller.avif';
 
-// Importacions d'imatges locals
+// ✅ Importaciones de las nuevas imágenes para los servicios
 import canviPneumatics from "@/../public/images/servies/neumatics.jpeg";
 import canviAmortidors from "@/../public/images/servies/canviAmortidors.jpeg";
 import canviBateria from "@/../public/images/servies/canviBateria.jpeg";
 import canvimanteniment from "@/../public/images/servies/manteniment.jpeg";
 import canvipastilelsFre from "@/../public/images/servies/pastillesdefre.jpeg";
 import canviProPostITV from "@/../public/images/servies/proPostitv.jpeg";
+import vehiclesPesants from "@/../public/images/servies/vehiclesPesants.jpeg"; // Nueva imagen
+import reparacioIntegral from "@/../public/images/servies/reparacioIntegral3.jpeg"; // Nueva imagen
+import altresServeis from "@/../public/images/servies/altresServeis.jpeg"; // Nueva imagen
+
+// ✅ Definimos un tipo para nuestros objetos de servicio para más seguridad
+interface Service {
+    id: number;
+    title: string;
+    description: string;
+    image: StaticImageData;
+    icon: React.ElementType;
+}
+// ✅ Constants per a la validació d'arxius
+const MAX_FILES = 3;
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const Taller = () => {
-    const { t, i18n } = useTranslation(); // Assegura't de tenir 'i18n' disponible des d'aquest hook
+    const { t, i18n } = useTranslation();
     const { toast } = useToast();
     
     const minBookingDate = addDays(new Date(), 3);
@@ -40,30 +56,63 @@ const Taller = () => {
         name: z.string().min(2, t('validation.nameRequired')),
         email: z.string().email(t('validation.emailInvalid')),
         phone: z.string().min(9, t('validation.phoneInvalid')),
+        vehicleBrand: z.string().min(2, "La marca es obligatoria."),
+        vehicleModel: z.string().min(1, "El modelo es obligatorio."),
         service: z.string().nonempty(t('validation.serviceRequired')),
         date: z.string()
             .nonempty(t('validation.dateRequired'))
             .refine(date => !isBefore(new Date(date), new Date(minBookingDateString)), {
-                message: `La reserva ha de ser com a mínim 3 dies a partir d'avui.`,
+                message: `La reserva debe ser con al menos 3 días de antelación.`,
             }),
         time: z.string().nonempty(t('validation.timeRequired')),
         message: z.string().optional(),
         privacyPolicy: z.boolean().refine(val => val === true, {
             message: t('validation.privacyRequired'),
         }),
+        // ✅ Esquema de validació per a múltiples arxius
+        attachments: z
+            .custom<FileList>()
+            .optional()
+            .refine((files) => !files || files.length <= MAX_FILES, `No pots pujar més de ${MAX_FILES} arxius.`)
+            .refine((files) => !files || Array.from(files).every((file) => file.size <= MAX_FILE_SIZE_BYTES), `Cada arxiu ha de pesar menys de ${MAX_FILE_SIZE_MB}MB.`),
     }), [t, minBookingDateString]);
 
     const { control, register, handleSubmit, formState: { errors, isSubmitting, isValid }, reset, watch, setValue } = useForm({
         resolver: zodResolver(appointmentSchema),
         mode: 'onChange',
-        defaultValues: { name: "", email: "", phone: "", service: "", date: "", time: "", message: "", privacyPolicy: false }
+        defaultValues: { name: "", email: "", phone: "", vehicleBrand: "", vehicleModel: "", service: "", date: "", time: "", message: "", privacyPolicy: false }
     });
     
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<string | null>(null);
     const selectedDate = watch('date');
+    const attachmentFiles = watch('attachments');
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    
+    // Estat per acumular arxius seleccionats
+const [files, setFiles] = useState<File[]>([]);
+
+const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const newFiles = event.target.files ? Array.from(event.target.files) : [];
+  const updatedFiles = [...files, ...newFiles].slice(0, MAX_FILES); // màxim 3
+  setFiles(updatedFiles);
+  setValue("attachments", updatedFiles as any, { shouldValidate: true });
+};
+
+// Previsualització
+useEffect(() => {
+  if (files.length > 0) {
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(newPreviews);
+    return () => newPreviews.forEach(url => URL.revokeObjectURL(url));
+  } else {
+    setImagePreviews([]);
+  }
+}, [files]);
+
     
     useEffect(() => {
         if (selectedDate) {
@@ -99,19 +148,31 @@ const Taller = () => {
     };
 
     const onSubmit = async (data: z.infer<typeof appointmentSchema>) => {
+        const formData = new FormData();
+        
+        // Añadimos todos los campos de texto al FormData
+        Object.entries(data).forEach(([key, value]) => {
+            if (key !== 'attachment') {
+                formData.append(key, value as string);
+            }
+        });
+
+        // Añadimos el idioma
+        formData.append('lang', i18n.language.startsWith('es') ? 'es' : 'ca');
+        
+        // ✅ Lògica per afegir múltiples arxius
+        if (data.attachments) {
+        Array.from(data.attachments).forEach((file: File) => {
+            formData.append('attachments', file); // La clau ha de ser la mateixa per a tots
+        });
+    }
+
         try {
-             // ✅ Creem un nou objecte per afegir l'idioma
-            const formData = {
-                ...data,
-                lang: i18n.language.startsWith('es') ? 'es' : 'ca',
-            };
             const response = await fetch(`/api/cites/crear`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // ✅ Enviem el nou objecte que inclou l'idioma
-
-                body: JSON.stringify(formData),
+                body: formData, // No usamos JSON.stringify, enviamos FormData directamente
             });
+
             const responseData = await response.json();
             if (!response.ok) {
                 throw new Error(responseData.error || 'Server response error');
@@ -124,13 +185,17 @@ const Taller = () => {
         }
     };
 
-    const services = useMemo(() => [
-        { id: 1, title: t('workshopServices.tires'), description: t('workshopServices.tiresDesc'), image: canviPneumatics },
-        { id: 2, title: t('workshopServices.brakes'), description: t('workshopServices.brakesDesc'), image: canvipastilelsFre },
-        { id: 3, title: t('workshopServices.battery'), description: t('workshopServices.batteryDesc'), image: canviBateria },
-        { id: 4, title: t('workshopServices.suspension'), description: t('workshopServices.suspensionDesc'), image: canviAmortidors },
-        { id: 5, title: t('workshopServices.ac'), description: t('workshopServices.acDesc'), image: canvimanteniment },
-        { id: 6, title: t('workshopServices.itv'), description: t('workshopServices.itvDesc'), image: canviProPostITV },
+    // ✅ Lista de servicios actualizada con los nuevos items y un campo 'icon'
+    const services: Service[] = useMemo(() => [
+        { id: 1, title: t('workshopServices.tires'), description: t('workshopServices.tiresDesc'), image: canviPneumatics, icon: Car },
+        { id: 2, title: t('workshopServices.brakes'), description: t('workshopServices.brakesDesc'), image: canvipastilelsFre, icon: Shield },
+        { id: 3, title: t('workshopServices.battery'), description: t('workshopServices.batteryDesc'), image: canviBateria, icon: BatteryCharging },
+        { id: 4, title: t('workshopServices.suspension'), description: t('workshopServices.suspensionDesc'), image: canviAmortidors, icon: Wind },
+        { id: 5, title: t('workshopServices.ac'), description: t('workshopServices.acDesc'), image: canvimanteniment, icon: Settings },
+        { id: 6, title: t('workshopServices.itv'), description: t('workshopServices.itvDesc'), image: canviProPostITV, icon: Wrench },
+        { id: 7, title: t('workshopServices.heavy'), description: t('workshopServices.heavyDesc'), image: vehiclesPesants, icon: Truck },
+        { id: 8, title: t('workshopServices.integral'), description: t('workshopServices.integralDesc'), image: reparacioIntegral, icon: Building },
+        { id: 9, title: t('workshopServices.other'), description: t('workshopServices.otherDesc'), image: altresServeis, icon: MoreHorizontal },
     ], [t]);
 
     return (
@@ -151,136 +216,339 @@ const Taller = () => {
                 </div>
             </section>
 
-            <section id="services" className="py-24 bg-gradient-to-b from-red-50 via-white to-red-50">
-  <div className="container mx-auto px-4">
-    <motion.h2
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.7 }}
-      className="text-4xl md:text-5xl font-extrabold text-center text-red-700 mb-16"
-    >
-      {t('workshopPage.servicesTitle')}
-    </motion.h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-      {services.map((service) => (
-        <motion.div
-          key={service.id}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="group relative flex flex-col overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl bg-white cursor-pointer transition-all duration-500"
-          onClick={() => handleServiceSelection(service.title)}
-        >
-          {/* IMATGE A SOBRE AMB PUNTES ARRODONIDES */}
-          <div className="relative w-full h-[24vh] rounded-t-3xl overflow-hidden">
-                <Image
-                    src={service.image}
-                    alt={service.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
-                </div>
-
-          {/* CONTINGUT TEXT A SOTA AMB FONS LLEUGER */}
-          <div className="p-8 bg-white flex flex-col justify-between rounded-b-3xl">
-            <div className="mb-2">
-              <h3 className="text-1xl md:text-2xl font-bold text-gray-900 mb-2">
-                {service.title}
-              </h3>
-              <p className="text-gray-700 text-sg leading-relaxed">
-                {service.description}
-              </p>
-            </div>
-
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </div>
-</section>
-
-
-
-            <section id="appointment-form" className="py-20 bg-gray-100">
+            {/* ✅ SECCIÓN DE SERVICIOS MEJORADA */}
+            <section id="services" className="py-24 bg-gray-50">
                 <div className="container mx-auto px-4">
-                    <div className="text-center max-w-3xl mx-auto">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('appointment.title')}</h2>
-                        <p className="text-xl text-gray-600">{t('appointment.subtitle')}</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mt-12">
-                        <motion.div whileHover={{ y: -5 }} onClick={() => handleServiceSelection(t('appointment.service1'))} className="bg-white p-8 rounded-xl shadow-lg cursor-pointer border-2 border-transparent hover:border-red-500 transition-all">
-                            <Wrench className="h-10 w-10 text-red-600 mb-4" />
-                            <h3 className="text-2xl font-bold mb-2">{t('appointment.service1')}</h3>
-                            <p className="text-gray-600 mb-4">{t('appointment.service1Desc')}</p>
-                            <span className="font-semibold text-red-600 flex items-center">{t('appointment.bookNow')} <ArrowRight className="ml-2 h-4 w-4" /></span>
-                        </motion.div>
-                        <motion.div whileHover={{ y: -5 }} onClick={() => handleServiceSelection(t('appointment.service2'))} className="bg-white p-8 rounded-xl shadow-lg cursor-pointer border-2 border-transparent hover:border-red-500 transition-all">
-                            <Settings className="h-10 w-10 text-red-600 mb-4" />
-                            <h3 className="text-2xl font-bold mb-2">{t('appointment.service2')}</h3>
-                            <p className="text-gray-600 mb-4">{t('appointment.service2Desc')}</p>
-                            <span className="font-semibold text-red-600 flex items-center">{t('appointment.bookNow')} <ArrowRight className="ml-2 h-4 w-4" /></span>
-                        </motion.div>
-                    </div>
-                    <div className="text-center max-w-3xl mx-auto mt-16 pt-10 border-t">
-                        <h3 className="text-2xl font-bold">{t('otherRepairs.title')}</h3>
-                        <p className="text-gray-600 mt-2 mb-6">{t('otherRepairs.subtitle')}</p>
-                        <Button asChild><Link href="/contacte"><Phone className="mr-2 h-4 w-4"/> {t('otherRepairs.contactNow')}</Link></Button>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7 }}
+                        className="text-center mb-16"
+                    >
+                        <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">{t('workshopPage.servicesTitle')}</h2>
+                        <p className="max-w-2xl mx-auto text-lg text-gray-600">{t('workshopPage.servicesSubtitle')}</p>
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {services.map((service, index) => (
+                            <motion.div
+                                key={service.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: index * 0.05 }}
+                                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+                                onClick={() => handleServiceSelection(service.title)}
+                            >
+                                <div className="relative w-full h-56 overflow-hidden">
+                                    <Image
+                                        src={service.image}
+                                        alt={service.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                    <div className="absolute bottom-4 left-4 flex items-center space-x-3">
+                                        
+                                    </div>
+                                </div>
+                                <div className="p-6 flex flex-col flex-grow">
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
+                                    <p className="text-gray-600 text-sm flex-grow leading-relaxed">{service.description}</p>
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                        <span className="font-semibold text-red-600 flex items-center group-hover:underline">
+                                            {t('appointment.bookNow')} <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            <Dialog open={isBookingOpen} onOpenChange={(isOpen) => { if (!isOpen) { reset(); } setIsBookingOpen(isOpen); }}>
-                <DialogContent className="sm:max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl">{t('appointment.bookingFor')} <span className="text-red-600">{selectedService}</span></DialogTitle>
-                        <DialogDescription>{t('appointment.fillForm')}</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><Label htmlFor="name">{t('form.labelName')}</Label><Input id="name" {...register("name")} placeholder={t('form.namePlaceholder')}/>{errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}</div><div><Label htmlFor="email">{t('form.labelEmail')}</Label><Input id="email" type="email" {...register("email")} placeholder={t('form.emailPlaceholder')}/>{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}</div></div>
-                        <div><Label htmlFor="phone">{t('form.labelPhone')}</Label><Input id="phone" {...register("phone")} placeholder={t('form.phonePlaceholder')}/>{errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <Label htmlFor="date">{t('form.labelDate')}</Label>
-                                {/* ✅ NEW: Set the 'min' attribute on the date input */}
-                                <Input id="date" type="date" {...register("date")} min={minBookingDateString}/>
-                                {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
-                            </div>
-                            <div>
-                                <Label htmlFor="time">{t('form.labelTime')}</Label>
-                                <div className="relative">
-                                    {isLoadingSlots && <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-gray-400" />}
-                                    <select {...register("time")} id="time" disabled={!selectedDate || isLoadingSlots || availableSlots.length === 0} className="w-full p-2 border rounded-md bg-white disabled:bg-gray-100 focus:ring-2 focus:ring-red-500">
-                                        <option value="">{isLoadingSlots ? t('form.loading') : (availableSlots.length > 0 ? t('form.selectTime') : t('form.noSlots'))}</option>
-                                        {availableSlots.map(slot => <option key={slot} value={slot}>{slot}</option>)}
-                                    </select>
-                                </div>
-                                {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}
-                            </div>
-                        </div>
-                        <div><Label htmlFor="message">{t('form.labelMessageOptional')}</Label><Textarea id="message" {...register("message")} placeholder={t('form.messagePlaceholder')} /></div>
-                        <div className="items-top flex space-x-2">
-                            <Controller name="privacyPolicy" control={control} render={({ field }) => (<Checkbox id="privacyPolicy-taller" checked={field.value} onCheckedChange={field.onChange} />)}/>
-                            <div className="grid gap-1.5 leading-none">
-                                        <Label htmlFor="privacyPolicy-contact" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                            {t('form.privacyAccept')}{' '}
-                                            <Link href="/politica_de_privacitat" target="_blank" rel="noopener noreferrer" className="underline text-red-600 hover:text-red-800">
-                                                {t('form.privacyPolicy')}
-                                            </Link>
-                                            .
-                                        </Label>
-                                        {errors.privacyPolicy && <p className="text-red-500 text-sm mt-1">{errors.privacyPolicy.message}</p>}
-                                    </div>
-                        </div>
-                        <Button type="submit" disabled={isSubmitting || !isValid} className="w-full bg-red-600 hover:bg-red-700 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                            {isSubmitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('form.sending')}</>) : (<>{t('form.submitButton')}</>)}
-                        </Button>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <section className="py-20 bg-gray-800 text-white">
+                <div className="container mx-auto px-4 text-center">
+                    <h3 className="text-3xl font-bold">{t('otherRepairs.title')}</h3>
+                    <p className="text-gray-300 mt-4 mb-8 max-w-2xl mx-auto">{t('otherRepairs.subtitle')}</p>
+                    <Button asChild size="lg" className="bg-green-500 hover:bg-green-600 rounded-full">
+                        <a href="https://wa.me/34626981978" target="_blank" rel="noopener noreferrer">
+                            <MessageCircle className="mr-2 h-5 w-5"/> {t('otherRepairs.contactWhatsApp')}
+                        </a>
+                    </Button>
+                </div>
+            </section>
+
+            <Dialog
+  open={isBookingOpen}
+  onOpenChange={(isOpen) => {
+    if (!isOpen) {
+      reset();
+    }
+    setIsBookingOpen(isOpen);
+  }}
+>
+  <DialogContent
+    className="w-full max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto px-4 py-6 sm:px-8 sm:py-8"
+  >
+    <DialogHeader>
+      <DialogTitle className="text-xl sm:text-2xl">
+        {t('appointment.bookingFor')}{' '}
+        <span className="text-red-600">{selectedService}</span>
+      </DialogTitle>
+      <DialogDescription className="text-sm sm:text-base">
+        {t('appointment.fillForm')}
+      </DialogDescription>
+    </DialogHeader>
+
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-4 pt-4"
+    >
+      {/* Datos de contacto */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">{t('form.labelName')}</Label>
+          <Input
+            id="name"
+            {...register('name')}
+            placeholder={t('form.namePlaceholder')}
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.name.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="phone">{t('form.labelPhone')}</Label>
+          <Input
+            id="phone"
+            {...register('phone')}
+            placeholder={t('form.phonePlaceholder')}
+          />
+          {errors.phone && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.phone.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Email */}
+      <div>
+        <Label htmlFor="email">{t('form.labelEmail')}</Label>
+        <Input
+          id="email"
+          type="email"
+          {...register('email')}
+          placeholder={t('form.emailPlaceholder')}
+        />
+        {errors.email && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.email.message}
+          </p>
+        )}
+      </div>
+
+      {/* Vehicle */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="vehicleBrand">Marca del Vehicle</Label>
+          <Input
+            id="vehicleBrand"
+            {...register('vehicleBrand')}
+            placeholder="Ej: BMW"
+          />
+          {errors.vehicleBrand && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.vehicleBrand.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="vehicleModel">Model del Vehicle</Label>
+          <Input
+            id="vehicleModel"
+            {...register('vehicleModel')}
+            placeholder="Ej: Serie 3"
+          />
+          {errors.vehicleModel && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.vehicleModel.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Data i hora */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="date">{t('form.labelDate')}</Label>
+          <Input
+            id="date"
+            type="date"
+            {...register('date')}
+            min={minBookingDateString}
+          />
+          {errors.date && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.date.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="time">{t('form.labelTime')}</Label>
+          <div className="relative">
+            {isLoadingSlots && (
+              <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-gray-400" />
+            )}
+            <select
+              {...register('time')}
+              id="time"
+              disabled={
+                !selectedDate ||
+                isLoadingSlots ||
+                availableSlots.length === 0
+              }
+              className="w-full p-2 border rounded-md bg-white disabled:bg-gray-100 focus:ring-2 focus:ring-red-500"
+            >
+              <option value="">
+                {isLoadingSlots
+                  ? t('form.loading')
+                  : availableSlots.length > 0
+                  ? t('form.selectTime')
+                  : t('form.noSlots')}
+              </option>
+              {availableSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+          </div>
+          {errors.time && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.time.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Missatge */}
+      <div>
+        <Label htmlFor="message">
+          {t('form.labelMessageOptional')}
+        </Label>
+        <Textarea
+          id="message"
+          {...register('message')}
+          placeholder={t('form.messagePlaceholder')}
+        />
+      </div>
+
+      <div>
+  <Label htmlFor="attachments">Adjuntar Imatges (Opcional, màx. 3)</Label>
+  <div className="relative mt-1">
+    <Upload className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+    <Input
+      id="attachments"
+      type="file"
+      multiple
+      accept="image/png, image/jpeg, image/webp"
+      className="pl-10 file:text-sm file:font-medium file:text-red-600 hover:file:text-red-700"
+      onChange={handleFileChange} // 👈 usem la funció nova
+    />
+  </div>
+  {errors.attachments && (
+    <p className="text-red-500 text-sm mt-1">{errors.attachments.message as string}</p>
+  )}
+
+  {imagePreviews.length > 0 && (
+    <div className="mt-4 flex flex-wrap gap-4">
+      {imagePreviews.map((src, index) => (
+        <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border">
+          <Image src={src} alt={`Previsualització ${index + 1}`} fill className="object-cover" />
+          {/* Botó per eliminar un fitxer concret */}
+          <button
+            type="button"
+            className="absolute top-1 right-1 bg-black/60 rounded-full p-1"
+            onClick={() => {
+              const updated = files.filter((_, i) => i !== index);
+              setFiles(updated);
+              setValue("attachments", updated as any, { shouldValidate: true });
+            }}
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+
+      {/* Política de privacitat */}
+      <div className="items-top flex space-x-2 pt-2">
+        <Controller
+          name="privacyPolicy"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              id="privacyPolicy-taller"
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+          )}
+        />
+        <div className="grid gap-1.5 leading-none">
+          <Label
+            htmlFor="privacyPolicy-taller"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {t('form.privacyAccept')}{' '}
+            <Link
+              href="/politica-de-privacitat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-red-600 hover:text-red-800"
+            >
+              {t('form.privacyPolicy')}
+            </Link>
+            .
+          </Label>
+          {errors.privacyPolicy && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.privacyPolicy.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Botó de submit més amunt (margin bottom extra) */}
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-red-600 hover:bg-red-700 py-3 text-lg mb-6"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('form.sending')}
+          </>
+        ) : (
+          <>{t('form.submitButton')}</>
+        )}
+      </Button>
+    </form>
+  </DialogContent>
+</Dialog>
+
         </div>
     );
 };

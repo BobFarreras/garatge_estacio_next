@@ -13,21 +13,28 @@
     "metaDescription": "Servicios de taller mecánico en La Bisbal. Pide cita previa online para mantenimiento y neumáticos.",
     "title": "Tu Taller de Confianza",
     "subtitle": "Más de 30 años cuidando de tu vehículo.",
-    "servicesTitle": "Nuestros Servicios"
+   "servicesTitle": "Nuestros Servicios de Taller",
+    "servicesSubtitle": "Expertos en el cuidado de tu vehículo. Haz clic en un servicio para pedir tu cita."
   },
   "workshopServices": {
     "tires": "Cambio de neumáticos",
-    "tiresDesc": "Sustitución, equilibrado y alineación de ruedas.",
-    "brakes": "Cambio de pastillas de frenos",
-    "brakesDesc": "Revisión y sustitución de pastillas y discos de freno.",
+    "tiresDesc": "Sustitución, equilibrado y alineación de ruedas para una conducción segura.",
+    "brakes": "Revisión de frenos",
+    "brakesDesc": "Revisión y sustitución profesional de pastillas y discos de freno.",
     "battery": "Cambio de batería",
-    "batteryDesc": "Diagnóstico e instalación de baterías nuevas.",
-    "suspension": "Cambio de amortiguadores",
-    "suspensionDesc": "Inspección y cambio del sistema de suspensión.",
+    "batteryDesc": "Diagnóstico completo del sistema de carga e instalación de baterías nuevas.",
+    "suspension": "Reparación de suspensión",
+    "suspensionDesc": "Inspección y cambio de amortiguadores y componentes del sistema de suspensión.",
     "ac": "Mantenimiento A/C",
-    "acDesc": "Recarga de gas y mantenimiento del sistema de climatización.",
-    "itv": "Pre - Post ITV",
-    "itvDesc": "Revisión completa pre-ITV y gestión de reparaciones."
+    "acDesc": "Recarga de gas y mantenimiento integral del sistema de climatización.",
+    "itv": "Revisión Pre-ITV",
+    "itvDesc": "Revisión completa de los puntos clave para superar la ITV sin sorpresas.",
+    "heavy": "Vehículos Pesados",
+    "heavyDesc": "Mantenimiento y reparación especializada para camiones y furgonetas.",
+    "integral": "Reparación Integral",
+    "integralDesc": "Servicios completos de chapa y pintura para una restauración total.",
+    "other": "Otros Servicios",
+    "otherDesc": "¿Tienes otra necesidad? Contáctanos y te ofreceremos una solución a medida."
   },
   "form": {
     "namePlaceholder": "Tu nombre",
@@ -83,7 +90,8 @@
   "otherRepairs": {
     "title": "¿Necesitas otro tipo de reparación?",
     "subtitle": "Para diagnósticos de motor, frenos, u otras consultas, contáctanos directamente.",
-    "contactNow": "Contactar Ahora"
+    "contactNow": "Contactar Ahora",
+     "contactWhatsApp": "Contactar por WhatsApp"
   },
   "contactPage": {
     "metaTitle": "Contacto - Garatge Estació",

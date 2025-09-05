@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // NOU: Importem useState i useEffect
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,10 @@ import {
   AccordionItem,
   AccordionTrigger
 } from "@/components/ui/accordion";
+
+import logoImage from '@/../public/images/descarga-removebg-preview.png';
+import ImgHyundai from "@/../public/images/hyundai.jpeg";
+import ImgKia from "@/../public/images/kia.jpeg";
 
 interface NavLinkItem {
   name: string;
@@ -52,6 +56,35 @@ const Header = () => {
   const { t, i18n } = useTranslation();
   const pathname = usePathname();
 
+  // NOU: Estats per controlar l'scroll i el canvi de logo
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [logoSrc, setLogoSrc] = useState(logoImage);
+  
+  const logoNormal = logoImage;
+  // IMPORTANT: Canvia aquesta URL per la del teu logo en versió blanca
+  const logoBlanc = logoImage;
+
+  // NOU: Hook useEffect per detectar l'event d'scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) { // Canvia a blanc després de 10px de scroll
+        setIsScrolled(true);
+        setLogoSrc(logoNormal);
+      } else {
+        setIsScrolled(false);
+        setLogoSrc(logoBlanc);
+      }
+    };
+    
+    // Afegeix l'event listener quan el component es munta
+    window.addEventListener('scroll', handleScroll);
+    
+    // Neteja l'event listener quan el component es desmunta
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [logoNormal, logoBlanc]); // Es torna a executar si les URLs dels logos canvien
+
   const changeLanguage = (lng: string) => i18n.changeLanguage(lng);
   
   const navLinks: NavLinkItem[] = [ { name: t('home'), path: '/' }, { name: t('workshop'), path: '/taller' } ];
@@ -62,12 +95,20 @@ const Header = () => {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    // MODIFICAT: Classes dinàmiques al header
+    <header className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+      {
+        'bg-white shadow-md text-gray-800': isScrolled,
+        'bg-transparent text-white': !isScrolled
+      }
+    )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           <div className="flex-1 flex justify-start">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <Image src="https://res.cloudinary.com/dvqhfapep/image/upload/v1753165725/descarga-removebg-preview_oplcv0.png" alt="Logo de Garatge Estació" width={160} height={56} className="h-14 w-auto" priority />
+              {/* MODIFICAT: La font del logo ara és dinàmica */}
+              <Image src={logoSrc} alt="Logo de Garatge Estació" width={140} height={46} className="h-14 w-auto" priority />
             </Link>
           </div>
           <nav className="hidden lg:flex justify-center absolute left-1/2 -translate-x-1/2">
@@ -85,17 +126,60 @@ const Header = () => {
                 ))}
                 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>{t('brands')}</NavigationMenuTrigger>
-                  <NavigationMenuContent className="bg-white shadow-md"> {/* ✅ ADDED */}
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[450px] md:grid-cols-2">
-                      {brandLinks.map((brand) => (
-                        <ListItem key={brand.name} href={brand.path} title={brand.name}>
-                          {brand.description}
-                        </ListItem>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
+  <NavigationMenuTrigger>{t('brands')}</NavigationMenuTrigger>
+  <NavigationMenuContent className="bg-white shadow-md text-gray-800">
+    <ul className="grid w-[400px] gap-4 p-4 md:w-[500px] md:grid-cols-2">
+      {/* Hyundai */}
+      <li>
+        <NavigationMenuLink asChild>
+          <Link
+            href="/venda-hyundai"
+            className="relative block h-40 w-full rounded-xl overflow-hidden group"
+          >
+            <Image
+              src={ImgHyundai}
+              alt="Hyundai"
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-black/50 group-hover:bg-black/50 transition-colors"></div>
+            <div className="absolute bottom-4 left-4 text-white">
+              <h3 className="text-lg font-semibold">Hyundai</h3>
+              <p className="text-sm text-white">
+                {t('hyundaiDescription')}
+              </p>
+            </div>
+          </Link>
+        </NavigationMenuLink>
+      </li>
+
+      {/* Kia */}
+      <li>
+        <NavigationMenuLink asChild>
+          <Link
+            href="/venda-kia"
+            className="relative block h-40 w-full rounded-xl overflow-hidden group"
+          >
+            <Image
+              src={ImgKia}
+              alt="Kia"
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-black/50 group-hover:bg-black/50 transition-colors"></div>
+            <div className="absolute bottom-4 left-4 text-white">
+              <h3 className="text-lg font-semibold">Kia</h3>
+              <p className="text-sm text-white">
+                {t('kiaDescription')}
+              </p>
+            </div>
+          </Link>
+        </NavigationMenuLink>
+      </li>
+    </ul>
+  </NavigationMenuContent>
+</NavigationMenuItem>
+
 
                 {serviceLinks.map((link) => (
                   <NavigationMenuItem key={link.name}>
@@ -119,11 +203,12 @@ const Header = () => {
             </NavigationMenu>
           </nav>
           <div className="hidden lg:flex flex-1 justify-end items-center space-x-1">
-            <Button onClick={() => changeLanguage('ca')} variant="ghost" size="sm" className={cn("font-semibold", i18n.language.startsWith('ca') && "bg-red-600 text-white hover:bg-red-700")}> {/* ✅ UPDATED */}
+            {/* MODIFICAT: Canvis de color dinàmics als botons d'idioma */}
+            <Button onClick={() => changeLanguage('ca')} variant="ghost" size="sm" className={cn("font-semibold", i18n.language.startsWith('ca') ? (isScrolled ? "bg-red-600 text-white hover:bg-red-700" : "bg-white text-red-600 hover:bg-gray-200") : "hover:bg-white/20")}>
                 CA
             </Button>
-            <span className="text-gray-300">/</span>
-            <Button onClick={() => changeLanguage('es')} variant="ghost" size="sm" className={cn("font-semibold", i18n.language.startsWith('es') && "bg-red-600 text-white hover:bg-red-700")}> {/* ✅ UPDATED */}
+            <span className={cn("transition-colors", isScrolled ? "text-gray-300" : "text-white/50")}>/</span>
+            <Button onClick={() => changeLanguage('es')} variant="ghost" size="sm" className={cn("font-semibold", i18n.language.startsWith('es') ? (isScrolled ? "bg-red-600 text-white hover:bg-red-700" : "bg-white text-red-600 hover:bg-gray-200") : "hover:bg-white/20")}>
                 ES
             </Button>
           </div>
@@ -132,14 +217,14 @@ const Header = () => {
           </div>
         </div>
       </div>
-      {/* Mobile menu remains the same as its Links are direct */}
+      {/* El menú mòbil es manté igual, ja que té el seu propi fons blanc */}
       {isOpen && ( 
-        <div className="lg:hidden bg-white border-t border-gray-200">
+        <div className="lg:hidden bg-white border-t border-gray-200 text-gray-800">
           <div className="flex flex-col space-y-1 p-4">
               {[...navLinks, ...serviceLinks, contactLink].map((link) => (<Link key={link.name} href={link.path} onClick={() => setIsOpen(false)} className={`py-3 text-center text-lg ${isActive(link.path) ? 'text-red-600 font-semibold' : ''}`}>{link.name}</Link>))}
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="py-3 justify-center text-lg font-medium">{t('brands')}</AccordionTrigger>
+                    <AccordionTrigger className="py-3 justify-center text-lg font-medium hover:no-underline">{t('brands')}</AccordionTrigger>
                     <AccordionContent>
                         <div className="flex flex-col items-center space-y-1 pt-2">
                             {brandLinks.map((brand) => (
@@ -150,8 +235,8 @@ const Header = () => {
                 </AccordionItem>
               </Accordion>
               <div className="mt-4 pt-4 border-t flex items-center justify-center space-x-2">
-               <Button onClick={() => { changeLanguage('ca'); setIsOpen(false); }} variant={i18n.language.startsWith('ca') ? 'default' : 'outline'} className="flex-1">Català</Button>
-               <Button onClick={() => { changeLanguage('es'); setIsOpen(false); }} variant={i18n.language.startsWith('es') ? 'default' : 'outline'} className="flex-1">Español</Button>
+                <Button onClick={() => { changeLanguage('ca'); setIsOpen(false); }} variant={i18n.language.startsWith('ca') ? 'default' : 'outline'} className="flex-1">Català</Button>
+                <Button onClick={() => { changeLanguage('es'); setIsOpen(false); }} variant={i18n.language.startsWith('es') ? 'default' : 'outline'} className="flex-1">Español</Button>
               </div>
           </div>
         </div>

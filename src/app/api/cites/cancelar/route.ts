@@ -1,46 +1,70 @@
+// /api/cites/cancelar/route.ts
+
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
-import { deleteGoogleCalendarEvent } from '@/lib/google-calendar'; // ✅ Importem la nova funció
+import { Resend } from 'resend';
+import { deleteGoogleCalendarEvent } from '@/lib/google-calendar';
+import { format } from 'date-fns';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID!);
-const TABLE_NAME = 'CitesTaller'; // Assegura't que sigui el nom correcte
+const resend = new Resend(process.env.RESEND_API_KEY);
+const TABLE_NAME = 'Cites';
+const ADMIN_EMAIL = 'info@garatgeestacio.com';
+const FROM_EMAIL = 'Garatge Estació <web@garatgeestacio.com>';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const token = searchParams.get('token');
 
-  if (!token || typeof token !== 'string') {
-    return NextResponse.redirect(new URL('/cancelar-cita?status=error&message=Token_no_valid', request.url));
+  if (!token) {
+    // ✅ CANVI: Redirigim a la nova URL d'error
+    return NextResponse.redirect(new URL('/cancelar-cita/error?motiu=Token_no_valid', request.url));
   }
 
   try {
-    // 1. BUSCAR LA CITA A AIRTABLE AMB EL TOKEN
     const records = await base(TABLE_NAME).select({
-      filterByFormula: `{cancellationToken} = '${token}'`,
+      filterByFormula: `{CancellationToken} = '${token}'`,
       maxRecords: 1,
     }).firstPage();
 
     if (records.length === 0) {
-      return NextResponse.redirect(new URL('/cancelar-cita?status=error&message=Cita_no_trobada', request.url));
+      // ✅ CANVI: Redirigim a la nova URL d'error
+      return NextResponse.redirect(new URL('/cancelar-cita/error?motiu=Cita_no_encontrada', request.url));
     }
 
     const record = records[0];
+    // ... (la lògica per enviar email i esborrar es queda igual)
     const googleEventId = record.get('GoogleEventId') as string | undefined;
-
-    // 2. ELIMINAR DE GOOGLE CALENDAR (SI EXISTEIX)
-    if (googleEventId) {
-        // ✅ Utilitzem la nostra nova funció
-        await deleteGoogleCalendarEvent(googleEventId);
+     try {
+        const clientName = record.get('Name');
+        const clientEmail = record.get('Email');
+        const clientPhone = record.get('Phone');
+        const vehicleBrand = record.get('Vehicle Brand');
+        const vehicleModel = record.get('Vehicle Model');
+        const service = record.get('Service');
+        const appointmentDate = record.get('Date');
+        const appointmentTime = record.get('Time');
+        const formattedDate = format(new Date(appointmentDate as string), 'dd/MM/yyyy');
+        await resend.emails.send({
+            from: FROM_EMAIL,
+            to: ADMIN_EMAIL,
+            subject: `❌ Cita Cancel·lada: ${clientName} - ${service}`,
+            html: `...` // El teu HTML de l'email
+        });
+    } catch (emailError) {
+        console.error("Error en enviar l'email de notificació:", emailError);
     }
-
-    // 3. ELIMINAR D'AIRTABLE
+    if (googleEventId) {
+      await deleteGoogleCalendarEvent(googleEventId);
+    }
     await base(TABLE_NAME).destroy(record.id);
 
-    // 4. REDIRIGIR A LA PÀGINA D'ÈXIT
-    return NextResponse.redirect(new URL('/cancelar-cita?status=success', request.url));
+    // ✅ CANVI CLAU: Redirigim a la nova URL D'ÈXIT
+    return NextResponse.redirect(new URL('/cancelar-cita/exit', request.url));
 
   } catch (error) {
     console.error("Error en cancel·lar la cita:", error);
-    return NextResponse.redirect(new URL('/cancelar-cita?status=error&message=Error_intern', request.url));
+    // ✅ CANVI: Redirigim a la nova URL d'error
+    return NextResponse.redirect(new URL('/cancelar-cita/error?motiu=Error_intern', request.url));
   }
 }

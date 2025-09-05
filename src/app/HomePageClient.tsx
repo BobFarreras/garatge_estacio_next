@@ -16,6 +16,7 @@ import LloguerCotxes from "@/../public/images/hyundai/ix5.avif";
 import ImgLloguerAutocarabanes from "@/../public/images/autocaravanes/perfilAutocaravana.jpg";
 import TexturaMetalica from "@/../public/images/texturametalica.jpeg";
 import LloguerAutocaravanes from "./lloguer-autocaravanes/page";
+
 /** --- Definicions tipades per a variants / transition --- */
 // Si vols una corba cubic-bezier personalitzada, TS pot queixar-se del tipus,
 // així que la guardem en un Transition i castejem l'ease.
@@ -69,7 +70,7 @@ export default function HomePageClient() {
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80" />
           {/* textura subtil al top */}
           <Image
             src={TEXTURE_METAL}
@@ -91,7 +92,7 @@ export default function HomePageClient() {
             >
               <motion.h1
                 variants={fadeUp}
-                className="text-4xl leading-tight font-extrabold text-white sm:text-5xl lg:text-6xl"
+                className="text-4xl leading-tight font-extrabold text-white py-4 sm:text-5xl lg:text-6xl"
               >
                 {t("homePage.interactiveCard.title")}
               </motion.h1>
@@ -130,15 +131,17 @@ export default function HomePageClient() {
             >
               <div className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-black/40 p-3 backdrop-blur-lg shadow-2xl">
                 <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="h-full w-full object-cover"
-                  >
-                    <source src="https://res.cloudinary.com/dvqhfapep/video/upload/v1753873758/Logo_garatge_estacio_uqduhs.mp4" type="video/mp4" />
-                  </video>
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="h-full w-full object-cover"
+                >
+                  {/* AQUESTA ÉS LA LÍNIA CORRECTA */}
+                  <source src="/videos/videologo.mp4" type="video/mp4" />
+                  El teu navegador no suporta l'etiqueta de vídeo.
+                </video>
                   {/* gradient vora inferior per llegibilitat */}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
@@ -162,60 +165,62 @@ export default function HomePageClient() {
         />
       </section>
 
-      {/* ================== SERVEIS (targets amb imatge) ================== */}
-      <section className="relative bg-white py-16 sm:py-20 lg:py-24">
-        {/* franja decorativa superior */}
-        <div className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-b from-gray-100 to-white" />
+     {/* ================== SERVEIS (targets amb imatge) ================== */}
+<section className="relative bg-white py-16 sm:py-20 lg:py-24">
+  {/* franja decorativa superior */}
+  <div className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-b from-gray-100 to-white" />
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-3xl text-center"
-          >
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              {t("homePage.servicesTitle")}
-            </h2>
-            <p className="mt-4 text-base sm:text-lg text-gray-600">
-              {t("homePage.servicesSubtitle")}
-            </p>
-          </motion.div>
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6 }}
+      className="mx-auto max-w-3xl text-center"
+    >
+      {/* --- MODIFICAT: Títol amb cantonades rodones --- */}
+      <h2 className="inline-block rounded-lg bg-gray-100 px-5 py-2 text-3xl font-extrabold tracking-tight md:text-4xl text-gray-900">
+        {t("homePage.servicesTitle")}
+      </h2>
+      <p className="mt-4 text-base sm:text-lg text-gray-600">
+        {t("homePage.servicesSubtitle")}
+      </p>
+    </motion.div>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Target 1 - Taller */}
-            <ServiceTile
-              href="/taller"
-              title={t("homePage.serviceWorkshopTitle")}
-              description={t("homePage.serviceWorkshopDesc")}
-              bg={SERVICE_TALLER}
-              icon={<Wrench className="h-6 w-6" />}
-              cta={t("homePage.serviceWorkshopBtn")}
-            />
+    {/* --- MODIFICAT: Més separació i alçada automàtica --- */}
+    <div className="mt-10 grid grid-cols-1 gap-8 sm:mt-12 lg:grid-cols-3">
+      {/* Target 1 - Taller */}
+      <ServiceTile
+        href="/taller"
+        title={t("homePage.serviceWorkshopTitle")}
+        description={t("homePage.serviceWorkshopDesc")}
+        bg={SERVICE_TALLER}
+        icon={<Wrench className="h-6 w-6" />}
+        cta={t("homePage.serviceWorkshopBtn")}
+      />
 
-            {/* Target 2 - Lloguer cotxes */}
-            <ServiceTile
-              href="/lloguer-vehicles"
-              title={t("homePage.serviceCarRentalTitle")}
-              description={t("homePage.serviceCarRentalDesc")}
-              bg={SERVICE_RENT_CAR}
-              icon={<Car className="h-6 w-6" />}
-              cta={t("homePage.serviceCarRentalBtn")}
-            />
+      {/* Target 2 - Lloguer cotxes */}
+      <ServiceTile
+        href="/lloguer-vehicles"
+        title={t("homePage.serviceCarRentalTitle")}
+        description={t("homePage.serviceCarRentalDesc")}
+        bg={SERVICE_RENT_CAR}
+        icon={<Car className="h-6 w-6" />}
+        cta={t("homePage.serviceCarRentalBtn")}
+      />
 
-            {/* Target 3 - Lloguer autocaravanes */}
-            <ServiceTile
-              href="/lloguer-autocaravanes"
-              title={t("homePage.serviceMotorhomeRentalTitle")}
-              description={t("homePage.serviceMotorhomeRentalDesc")}
-              bg={SERVICE_RENT_MH}
-              icon={<Caravan className="h-6 w-6" />}
-              cta={t("homePage.serviceMotorhomeRentalBtn")}
-            />
-          </div>
-        </div>
-      </section>
+      {/* Target 3 - Lloguer autocaravanes */}
+      <ServiceTile
+        href="/lloguer-autocaravanes"
+        title={t("homePage.serviceMotorhomeRentalTitle")}
+        description={t("homePage.serviceMotorhomeRentalDesc")}
+        bg={SERVICE_RENT_MH}
+        icon={<Caravan className="h-6 w-6" />}
+        cta={t("homePage.serviceMotorhomeRentalBtn")}
+      />
+    </div>
+  </div>
+</section>
 
       {/* ================== FRANJA CTA AMB TEXTURA ================== */}
       <section className="relative overflow-hidden">
@@ -294,40 +299,42 @@ function ServiceTile({
   cta: string;
 }) {
   return (
-    <Link href={href} className="w-full">
+    // --- MODIFICAT: Afegim h-full per ocupar tota l'alçada de la cel·la del grid ---
+    <Link href={href} className="w-full h-full">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.4 }}
         transition={{ duration: 0.6 }}
-        className="group relative flex flex-col overflow-hidden rounded-4xl shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white cursor-pointer"
-        style={{ minHeight: '500px' }} // augmenta la mida de la card
+        // --- MODIFICAT: h-full, rounded-3xl (estàndard) i eliminem min-height ---
+        className="group relative flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-lg transition-all duration-500 hover:shadow-2xl cursor-pointer"
       >
         {/* IMATGE A SOBRE */}
-        <div className="relative w-full h-[30vh] rounded-t-4xl overflow-hidden">
+        {/* --- MODIFICAT: Alçada fixa per a la imatge per donar més espai al text --- */}
+        <div className="relative w-full h-64 overflow-hidden">
           <Image
             src={bg}
             alt={title}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
         </div>
 
         {/* CONTINGUT DE TEXT */}
-        <div className="p-8 sm:p-10 flex flex-col justify-between flex-grow">
-          <div className="bg-black/60 backdrop-blur-sm rounded-2xl p-6 h-full flex flex-col justify-center">
-            <h3 className="text-2xl font-bold text-white mb-4">{title}</h3>
-            <p className="text-lg text-white/90 leading-relaxed flex-grow">
-              {description}
-            </p>
-          </div>
-
-          {/* CTA opcional */}
-          {/* <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white/95 px-5 py-2.5 font-semibold text-gray-900 backdrop-blur transition hover:bg-white">
-            {cta}
-            <ArrowRight className="h-5 w-5" />
-          </span> */}
+        {/* --- MODIFICAT: Eliminem el contenidor extra i ajustem padding --- */}
+        <div className="p-6 flex flex-col flex-grow">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
+          <p className="text-gray-600 leading-relaxed flex-grow">
+            {description}
+          </p>
+          
+          {/* CTA (botó) a la part inferior */}
+          <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-red-600 px-5 py-2.5 font-semibold text-white transition hover:bg-red-700">
+             {cta}
+             <ArrowRight className="h-5 w-5" />
+          </span>
         </div>
       </motion.div>
     </Link>

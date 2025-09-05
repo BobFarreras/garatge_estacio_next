@@ -39,14 +39,31 @@ type DialogProps = {
 
 
 const MotorhomeDetailsDialog = ({ motorhome, open, onOpenChange, onBook }: DialogProps) => {
-  if (!motorhome) return null;
+  
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [bookedDays, setBookedDays] = useState<Date[]>([]);
   const [loadingDates, setLoadingDates] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  
 
+
+
+  useEffect(() => {
+    if (open && motorhome) {
+      setLoadingDates(true);
+      setDateRange(undefined);
+      fetch(`/api/autocaravanes/availability?vehicle_name=${encodeURIComponent(motorhome.name)}`)
+        .then(res => res.json())
+        .then(data => { if (data.booked_dates) setBookedDays(data.booked_dates.map((dateStr: string) => new Date(dateStr))) })
+        .catch(err => console.error("Error carregant disponibilitat:", err))
+        .finally(() => setLoadingDates(false));
+    }
+  }, [open, motorhome]);
+  if (!motorhome) {
+    return null; // Ara aquest retorn no afecta els hooks
+  }
 
 // The images now come from the motorhome data provided by Airtable
   const images = [motorhome.image_url, ...motorhome.gallery_images];
@@ -64,20 +81,6 @@ const MotorhomeDetailsDialog = ({ motorhome, open, onOpenChange, onBook }: Dialo
     raderaAutocaravana,
     neveraAutocarabana
   ];
-
-
-  useEffect(() => {
-    if (open && motorhome) {
-      setLoadingDates(true);
-      setDateRange(undefined);
-      fetch(`/api/autocaravanes/availability?vehicle_name=${encodeURIComponent(motorhome.name)}`)
-        .then(res => res.json())
-        .then(data => { if (data.booked_dates) setBookedDays(data.booked_dates.map((dateStr: string) => new Date(dateStr))) })
-        .catch(err => console.error("Error carregant disponibilitat:", err))
-        .finally(() => setLoadingDates(false));
-    }
-  }, [open, motorhome]);
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>

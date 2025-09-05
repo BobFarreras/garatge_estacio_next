@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from "@/components/ui/checkbox";
-
+import imatgeFaçana from "@/../public/images/façana.jpeg";
 const MapaContacte = dynamic(() => import('@/components/MapaContacte'), { 
     ssr: false,
     loading: () => <div className="flex justify-center items-center h-full bg-gray-200">Loading map...</div> 
@@ -83,7 +83,7 @@ const Contacte = () => {
                     priority
                     className="object-cover"
                     alt="Contacte Garatge Estació"
-                    src="https://res.cloudinary.com/dvqhfapep/image/upload/v1753124394/1-358f0b08_djkf2j.jpg"
+                    src= {imatgeFaçana}
                     sizes="100vw"
                 />
             </section>
