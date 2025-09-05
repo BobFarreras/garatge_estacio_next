@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useSearchParams } from 'next/navigation';
 import { Mail, Phone, MapPin, Send, User, MessageSquare, Tag, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -27,11 +26,9 @@ const MapaContacte = dynamic(() => import('@/components/MapaContacte'), {
 const Contacte = () => {
     const { t } = useTranslation();
     const { toast } = useToast();
-    const searchParams = useSearchParams();
-    const vehicleId = searchParams.get('vehicle');
-    const vehicleModel = searchParams.get('model');
 
-    // ✅ FINAL FIX: Changed z.literal to z.boolean().refine()
+    // ✅ LÒGICA DINÀMICA ELIMINADA: Ja no llegim paràmetres de la URL.
+    
     const contactSchema = useMemo(() => z.object({
         name: z.string().min(2, t('validation.nameRequired')),
         email: z.string().email(t('validation.emailInvalid')),
@@ -43,18 +40,13 @@ const Contacte = () => {
         }),
     }), [t]);
 
-    const { control, register, handleSubmit, formState: { errors, isSubmitting, isValid }, reset, setValue } = useForm({
+    const { control, register, handleSubmit, formState: { errors, isSubmitting, isValid }, reset } = useForm({
         resolver: zodResolver(contactSchema),
         mode: 'onChange',
         defaultValues: { name: "", email: "", phone: "", subject: "", message: "", privacyPolicy: false }
     });
 
-    useEffect(() => {
-        if (vehicleId && vehicleModel) {
-            setValue('subject', `Interest in used vehicle: ${vehicleModel} (Ref: ${vehicleId})`);
-            setValue('message', `Hello, I am interested in the vehicle ${vehicleModel} with reference ${vehicleId}. I would like to receive more information. Thank you.`);
-        }
-    }, [vehicleId, vehicleModel, setValue]);
+    // ✅ LÒGICA DINÀMICA ELIMINADA: El useEffect que omplia el formulari ja no és necessari.
 
     const onSubmit = async (data: z.infer<typeof contactSchema>) => {
         try {
@@ -142,3 +134,4 @@ const Contacte = () => {
 };
 
 export default Contacte;
+
