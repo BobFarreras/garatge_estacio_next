@@ -12,7 +12,8 @@ const PoliticaPrivacitat = () => {
             <main className="container mx-auto px-4 md:px-6 py-12">
                 <div className="bg-white p-8 md:p-12 rounded-lg shadow-lg">
                     <h2 className="text-4xl font-bold text-gray-800 mb-6">Política de Privacitat</h2>
-                    <p className="text-sm text-gray-500 mb-8">Última actualització: 23 d'agost de 2025</p>
+                    {/* ✅ Data actualitzada */}
+                    <p className="text-sm text-gray-500 mb-8">Última actualització: 5 de setembre de 2025</p>
                     
                     <div className="legal-content">
                         <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">1. Responsable del Tractament</h3>
@@ -20,15 +21,15 @@ const PoliticaPrivacitat = () => {
                             <li><strong>Titular:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">[Nom legal complet de l'empresa o autònom]</span></li>
                             <li><strong>Nom comercial:</strong> Garatge Estació</li>
                             <li><strong>NIF/CIF:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">[NIF/CIF de l'empresa]</span></li>
-                            <li><strong>Domicili:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">C/ Ramon Serradell, 21, 17100</span></li>
+                            <li><strong>Domicili:</strong> C/ Ramon Serradell, 21, 17100 La Bisbal d'Empordà</li>
                             <li><strong>Correu electrònic:</strong> info@garatgeestacio.com</li>
-                            <li><strong>Telèfon:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">972 640 204</span></li>
+                            <li><strong>Telèfon:</strong> 972 640 204</li>
                         </ul>
 
                         <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">2. Finalitat del Tractament de Dades</h3>
                         <p className="mb-4 text-lg text-gray-700">Garatge Estació tractarà les dades personals recollides a través d'aquest lloc web amb les següents finalitats:</p>
                         <ul className="list-inside list-disc pl-4 text-lg text-gray-700">
-                            <li className="mb-2"><strong>Formularis de contacte i reserves (taller i autocaravanes):</strong> Gestionar les consultes, sol·licituds d'informació i reserves realitzades pels usuaris. Això inclou la comunicació necessària per a la prestació del servei, l'enviament de confirmacions i recordatoris.</li>
+                            <li className="mb-2"><strong>Formularis de contacte, cites i reserves:</strong> Gestionar les consultes, sol·licituds d'informació i reserves realitzades pels usuaris. Això inclou la comunicació necessària per a la prestació del servei, l'enviament de confirmacions, recordatoris i altres notificacions relacionades.</li>
                             <li className="mb-2"><strong>Gestió administrativa i comercial:</strong> Mantenir la relació comercial, facturació i compliment d'obligacions legals.</li>
                         </ul>
                         <p className="mb-4 text-lg text-gray-700">Les dades recollides (nom, email, telèfon) són les mínimes indispensables per a aquestes finalitats.</p>
@@ -39,11 +40,14 @@ const PoliticaPrivacitat = () => {
                         <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">4. Conservació de les Dades</h3>
                         <p className="mb-4 text-lg text-gray-700">Les dades personals proporcionades es conservaran mentre es mantingui la relació comercial o durant els anys necessaris per complir amb les obligacions legals.</p>
 
-                        <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">5. Destinataris</h3>
-                        <p className="mb-4 text-lg text-gray-700">Les teves dades no se cediran a tercers, excepte per obligació legal. Per a la gestió de les reserves, les teves dades es desen en les següents plataformes, que actuen com a encarregats del tractament i compleixen amb la normativa de protecció de dades:</p>
+                        {/* ✅ Secció actualitzada amb Vercel i Resend */}
+                        <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">5. Destinataris i Transferències Internacionals</h3>
+                        <p className="mb-4 text-lg text-gray-700">Les teves dades no se cediran a tercers, excepte per obligació legal. Per al correcte funcionament del lloc web i la gestió de les teves sol·licituds, compartim dades amb les següents plataformes, que actuen com a encarregats del tractament i compleixen amb la normativa de protecció de dades:</p>
                         <ul className="list-inside list-disc pl-4 text-lg text-gray-700">
-                            <li className="mb-2"><strong>Airtable:</strong> Per a la gestió interna de les reserves.</li>
-                            <li className="mb-2"><strong>Google Calendar (Google LLC):</strong> Per a l'organització de l'agenda de cites i reserves.</li>
+                            <li className="mb-2"><strong>Vercel Inc.:</strong> Proveïdor de hosting per a l'allotjament del lloc web i les seves funcions. Les dades s'emmagatzemen en servidors que poden estar ubicats als Estats Units, sota l'acord de transferència de dades UE-EUA (Data Privacy Framework).</li>
+                            <li className="mb-2"><strong>Airtable:</strong> Plataforma per a la gestió interna de les cites i reserves.</li>
+                            <li className="mb-2"><strong>Resend (Resend Inc.):</strong> Servei per a l'enviament dels correus electrònics de confirmació i notificacions.</li>
+                            <li className="mb-2"><strong>Google LLC:</strong> Per a l'organització de l'agenda de cites i reserves mitjançant Google Calendar.</li>
                         </ul>
 
                         <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">6. Drets dels Usuaris</h3>

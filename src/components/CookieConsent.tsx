@@ -31,7 +31,8 @@ const CookieConsent = () => {
         <p className="text-sm text-gray-700 text-center sm:text-left">
           Utilitzem cookies pròpies i de tercers per millorar l’experiència de navegació.
           Pots acceptar totes les cookies o només les essencials.{" "}
-          <a href="/politica_de_cookies.html" className="underline text-red-500">
+
+          <a href="/politica_de_cookies" className="underline text-red-500">
             Més informació
           </a>
         </p>
