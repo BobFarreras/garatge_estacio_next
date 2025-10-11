@@ -10,6 +10,8 @@ export type Motorhome = {
   id: string;
   id_numeric: number;
   name: string;
+  name_ca: string; // ✅ Assegura't que aquesta línia existeix
+
   description: string;
   image_url: string;
   gallery_images: string[];

@@ -1,7 +1,7 @@
 // lib/google-calendar.ts
 
 import { google } from 'googleapis';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 
 // Funció per obtenir un client autenticat amb el Compte de Servei
 async function getAuthenticatedClient() {
@@ -91,46 +91,38 @@ export async function deleteGoogleCalendarEvent(eventId: string) {
 
 // ✅ --- NOVA FUNCIÓ PER AL LLOGUER D'AUTOCARAVANES ---
 export async function createGoogleCalendarRentalEvent(data: any, airtableRecordId: string) {
-  const calendarId = process.env.GOOGLE_CALENDAR_ID;
-  if (!calendarId) {
-    console.error('GOOGLE_CALENDAR_ID no està definit.');
-    return null;
-  }
+    const calendarId = process.env.GOOGLE_CALENDAR_ID;
+    if (!calendarId) {
+        console.error('GOOGLE_CALENDAR_ID no està definit.');
+        return null;
+    }
 
-  try {
-    const calendar = await getAuthenticatedClient();
-    
-    // Per a reserves de diversos dies, creem un esdeveniment de "tot el dia"
-    const event = {
-      summary: `Lloguer AC: ${data.Vehicle_Name} - ${data.customer_name}`,
-      description: `Client: ${data.customer_name}\nTelèfon: ${data.customer_phone}\nEmail: ${data.customer_email}\n\nID Airtable: ${airtableRecordId}`,
-      start: {
-        // Data d'inici (format YYYY-MM-DD)
-        date: data.start_date,
-      },
-      end: {
-        // La data final en esdeveniments de tot el dia és exclusiva,
-        // per la qual cosa hem de sumar un dia.
-        date: format(addDays(new Date(data.end_date), 1), 'yyyy-MM-dd'),
-      },
-      // Canviem el color per a diferenciar-lo de les cites de taller (verd clar)
-      colorId: '2', 
-    };
+    try {
+        const calendar = await getAuthenticatedClient();
+        
+        const event = {
+            summary: `Lloguer AC: ${data.Vehicle_Name} - ${data.customer_name}`,
+            description: `Client: ${data.customer_name}\nTelèfon: ${data.customer_phone}\nEmail: ${data.customer_email}\n\nID Airtable: ${airtableRecordId}`,
+            start: {
+                date: data.start_date,
+            },
+            end: {
+                // ✅ 2. ARA LA FUNCIÓ 'addDays' EXISTEIX I FUNCIONARÀ CORRECTAMENT
+                date: format(addDays(new Date(data.end_date), 1), 'yyyy-MM-dd'),
+            },
+            colorId: '2', 
+        };
 
-    const createdEvent = await calendar.events.insert({
-      calendarId: calendarId,
-      requestBody: event,
-    });
+        const createdEvent = await calendar.events.insert({
+            calendarId: calendarId,
+            requestBody: event,
+        });
 
-    console.log('✅ Event de Lloguer a Google Calendar creat:', createdEvent.data.htmlLink);
-    return createdEvent.data;
+        console.log('✅ Event de Lloguer a Google Calendar creat:', createdEvent.data.htmlLink);
+        return createdEvent.data;
 
-  } catch (error) {
-    console.error('🔴 Google Calendar API error (Lloguer):', error);
-    throw error;
-  }
-}
-
-function addDays(arg0: Date, arg1: number): any {
-  throw new Error('Function not implemented.');
+    } catch (error) {
+        console.error('🔴 Google Calendar API error (Lloguer):', error);
+        throw error;
+    }
 }

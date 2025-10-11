@@ -19,7 +19,9 @@ const Footer = () => {
                         <Link href="/" className="inline-block mb-4">
                             <Image src={logoImage} alt="Logo de Garatge Estació" width={160} height={56} className="h-14 w-auto" />
                         </Link>
-                        <p className="text-gray-400">{t('footer.description')}</p>
+                        <p className="text-gray-400" suppressHydrationWarning>
+                            {t('footer.description')}
+                        </p>                    
                     </div>
                     <div>
                         <p className="font-bold text-lg mb-4">{t('footer.servicesTitle')}</p>
@@ -45,7 +47,7 @@ const Footer = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="mt-8 pt-8 border-t border-gray-700 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 text-gray-400 text-sm">
                     <Link href="/avis_legal" className="hover:text-white">Avís Legal</Link>
                     <span className="hidden sm:inline">|</span>

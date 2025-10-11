@@ -3,9 +3,8 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import Chatbot from '@/components/Chatbot';
 import CookieConsent from '@/components/CookieConsent';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner"; // <-- Importa el nou Toaster
 import { Providers } from '@/components/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -88,13 +87,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ca">
       <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50 text-gray-900`}>
+        
         <Providers>
           <Header />
           <CookieConsent />
           <main className="flex-grow">{children}</main>
           <Footer />
           {/* <Chatbot />*/}
-          <Toaster />
+        <Toaster richColors position="bottom-right" />
           {/* JSON-LD per a l'organització */}
           <script
             type="application/ld+json"

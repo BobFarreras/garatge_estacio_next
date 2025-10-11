@@ -1,58 +1,58 @@
-// src/app/api/autocaravanes/route.ts
+// app/api/autocaravanes/route.ts
 
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
+import type { Motorhome } from '@/types';
 
-// Configura Airtable (afegeix les claus al teu .env.local)
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID!);
+const TABLE_NAME = 'Autocaravanes';
+
+const processArrayField = (fieldValue: unknown): string[] => {
+  if (typeof fieldValue !== 'string' || !fieldValue) return [];
+  try {
+    const decoded = JSON.parse(fieldValue);
+    return Array.isArray(decoded) ? decoded : [String(fieldValue)];
+  } catch (e) {
+    return fieldValue.split(',').map(s => s.trim()).filter(Boolean);
+  }
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const lang = searchParams.get('lang') === 'es' ? 'es' : 'ca'; // Per defecte 'ca'
+  const lang = searchParams.get('lang') === 'es' ? 'es' : 'ca';
 
   try {
-    const records = await base('Autocaravanes')
-      .select({
-        filterByFormula: "AND({is_available}=1, {show_on_web}=1)",
-        sort: [{ field: 'id', direction: 'asc' }],
-      })
-      .all();
+    const records = await base(TABLE_NAME).select({
+      filterByFormula: "AND({is_available}=1, {show_on_web}=1)",
+      sort: [{ field: 'id', direction: 'asc' }],
+    }).all();
 
-    const processArrayField = (fieldValue: string | undefined): string[] => {
-        if (!fieldValue) return [];
-        // Intenta decodificar JSON primer, si no, separa per comes
-        try {
-            const decoded = JSON.parse(fieldValue);
-            return Array.isArray(decoded) ? decoded : [String(fieldValue)];
-        } catch (e) {
-            return fieldValue.split(',').map(s => s.trim()).filter(Boolean);
-        }
-    };
-      
-    const motorhomes = records.map((record) => {
-        const fields = record.fields;
-        return {
-            id: record.id,
-            id_numeric: fields.id,
-            name: fields[`name_${lang}`] || fields.name_ca,
-            description: fields[`description_${lang}`] || fields.description_ca,
-            image_url: fields.image_url,
-            gallery_images: processArrayField(fields.gallery_images as string),
-            features: processArrayField(fields[`features_${lang}`] as string || fields.features_ca as string),
-            included_items: processArrayField(fields[`included_items_${lang}`] as string || fields.included_items_ca as string),
-            passengers: fields.passengers,
-            length: fields.length,
-            width: fields.width,
-            height: fields.height,
-            is_available: fields.is_available,
-            pricing: fields.pricing ? JSON.parse(fields.pricing as string) : {},
-        };
+    const motorhomes = records.map((record): Partial<Motorhome> => {
+      const fields = record.fields;
+      return {
+        id: record.id,
+        id_numeric: fields.id as number,
+        name: (fields[`name_${lang}`] || fields.name_ca) as string,
+        name_ca: fields.name_ca as string,
+
+        description: (fields[`description_${lang}`] || fields.description_ca) as string,
+        image_url: fields.image_url as string,
+        gallery_images: processArrayField(fields.gallery_images),
+        features: processArrayField(fields[`features_${lang}`] || fields.features_ca),
+        included_items: processArrayField(fields[`included_items_${lang}`] || fields.included_items_ca),
+        passengers: fields.passengers as number,
+        length: fields.length as number,
+        width: fields.width as number,
+        height: fields.height as number,
+        is_available: !!fields.is_available,
+        pricing: fields.pricing ? JSON.parse(fields.pricing as string) : {},
+      };
     });
 
     return NextResponse.json(motorhomes);
 
   } catch (error) {
     console.error("Error obtenint autocaravanes d'Airtable:", error);
-    return NextResponse.json({ error: "No s'han pogut carregar les dades de les autocaravanes." }, { status: 500 });
+    return NextResponse.json({ error: "No s'han pogut carregar les dades." }, { status: 500 });
   }
 }
