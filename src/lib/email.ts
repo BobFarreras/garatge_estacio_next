@@ -12,42 +12,42 @@ export async function sendWorkshopAppointmentEmails(data: any) {
   const appointmentDate = new Date(`${data.date}T${data.time}`);
   const formattedDate = format(appointmentDate, 'dd/MM/yyyy');
   // ✅ CORRECCIÓ: El nom de la columna és 'cancellationToken' (normalment en camelCase a l'objecte)
-  const cancellationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/cites/cancelar?token=${data.cancellationToken}`;
-
+  const cancellationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/cancelar-cita/${data.cancellationToken}`;
+  
   console.log("URL de cancel·lació generada:", cancellationUrl); // <--- AFEGEIX AIXÒ  
   const addToCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Cita Taller: ${data.service}`)}&dates=${format(appointmentDate, "yyyyMMdd'T'HHmmss")}/${format(new Date(appointmentDate.getTime() + 60 * 60 * 1000), "yyyyMMdd'T'HHmmss")}&details=${encodeURIComponent(`Servei: ${data.service}\nClient: ${data.name}`)}&location=${encodeURIComponent("Garatge Estació, La Bisbal d'Empordà")}`;
   const lang: 'ca' | 'es' = (data.lang === 'es') ? 'es' : 'ca';
 
   const clientTexts = {
     ca: {
-        subject: "✅ Cita al taller confirmada - Garatge Estació",
-        title: "La teva cita està confirmada!",
-        greeting: `Hola, <strong>${data.name}</strong>,`,
-        body: "Ens complau confirmar que la teva cita ha estat registrada correctament. T'hi esperem!",
-        summaryTitle: "Detall de la teva cita",
-        service: "Servei",
-        date: "Data",
-        time: "Hora",
-        yourMessage: "El teu missatge",
-        addToCalendar: "Afegeix a Google Calendar",
-        manageTitle: "Gestiona la teva cita",
-        manageBody: "Si necessites cancel·lar la teva cita, pots fer-ho a través del següent enllaç.",
-        cancelButton: "Cancel·lar la meva cita"
+      subject: "✅ Cita al taller confirmada - Garatge Estació",
+      title: "La teva cita està confirmada!",
+      greeting: `Hola, <strong>${data.name}</strong>,`,
+      body: "Ens complau confirmar que la teva cita ha estat registrada correctament. T'hi esperem!",
+      summaryTitle: "Detall de la teva cita",
+      service: "Servei",
+      date: "Data",
+      time: "Hora",
+      yourMessage: "El teu missatge",
+      addToCalendar: "Afegeix a Google Calendar",
+      manageTitle: "Gestiona la teva cita",
+      manageBody: "Si necessites cancel·lar la teva cita, pots fer-ho a través del següent enllaç.",
+      cancelButton: "Cancel·lar la meva cita"
     },
     es: {
-        subject: "✅ Cita en el taller confirmada - Garaje Estació",
-        title: "¡Tu cita está confirmada!",
-        greeting: `Hola, <strong>${data.name}</strong>,`,
-        body: "Nos complace confirmar que tu cita ha sido registrada correctamente. ¡Te esperamos!",
-        summaryTitle: "Detalles de tu cita",
-        service: "Servicio",
-        date: "Fecha",
-        time: "Hora",
-        yourMessage: "Tu mensaje",
-        addToCalendar: "Añadir a Google Calendar",
-        manageTitle: "Gestiona tu cita",
-        manageBody: "Si necesitas cancelar tu cita, puedes hacerlo a través del siguiente enlace.",
-        cancelButton: "Cancelar mi cita"
+      subject: "✅ Cita en el taller confirmada - Garaje Estació",
+      title: "¡Tu cita está confirmada!",
+      greeting: `Hola, <strong>${data.name}</strong>,`,
+      body: "Nos complace confirmar que tu cita ha sido registrada correctamente. ¡Te esperamos!",
+      summaryTitle: "Detalles de tu cita",
+      service: "Servicio",
+      date: "Fecha",
+      time: "Hora",
+      yourMessage: "Tu mensaje",
+      addToCalendar: "Añadir a Google Calendar",
+      manageTitle: "Gestiona tu cita",
+      manageBody: "Si necesitas cancelar tu cita, puedes hacerlo a través del siguiente enlace.",
+      cancelButton: "Cancelar mi cita"
     }
   };
 
@@ -95,16 +95,16 @@ export async function sendWorkshopAppointmentEmails(data: any) {
                         <p style="margin:0;font-size:18px"><strong>${texts.time}:</strong> ${data.time}</p>
                         ${data.message ? `<p style="margin:10px 0 0;font-size:18px"><strong>${texts.yourMessage}:</strong> ${data.message}</p>` : ''}
                         ${data.attachmentUrls && data.attachmentUrls.length > 0
-                          ? `<div style="margin:10px 0 0;font-size:18px">
+        ? `<div style="margin:10px 0 0;font-size:18px">
                               <strong>Adjunts:</strong>
                               <ul>
                                 ${data.attachmentUrls.map((url: string, i: number) =>
-                                  `<li><a href="${url}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Fitxer ${i + 1}</a></li>`
-                                ).join('')}
+          `<li><a href="${url}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Fitxer ${i + 1}</a></li>`
+        ).join('')}
                               </ul>
                             </div>`
-                          : ''
-                        }
+        : ''
+      }
                       </td>
                     </tr>
                   </table>
@@ -169,18 +169,18 @@ export async function sendWorkshopAppointmentEmails(data: any) {
                     <tr><td style="padding:8px;border:1px solid #ddd"><strong>Hora:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.time}</td></tr>
                     ${data.message ? `<tr><td style="padding:8px;border:1px solid #ddd"><strong>Mensaje:</strong></td><td style="padding:8px;border:1px solid #ddd">${data.message}</td></tr>` : ''}
                     ${data.attachmentUrls && data.attachmentUrls.length > 0
-                      ? `<tr>
+        ? `<tr>
                            <td style="padding:8px;border:1px solid #ddd"><strong>Archivos Adjuntos:</strong></td>
                            <td style="padding:8px;border:1px solid #ddd">
                              <ul style="margin:0;padding-left:18px">
-                               ${data.attachmentUrls.map((url: string, i: number) => 
-                                  `<li><a href="${url}" target="_blank">Archivo ${i + 1}</a></li>`
-                               ).join('')}
+                               ${data.attachmentUrls.map((url: string, i: number) =>
+          `<li><a href="${url}" target="_blank">Archivo ${i + 1}</a></li>`
+        ).join('')}
                              </ul>
                            </td>
                          </tr>`
-                      : ''
-                    }
+        : ''
+      }
                     
                 </table>
             </div>
@@ -188,7 +188,7 @@ export async function sendWorkshopAppointmentEmails(data: any) {
         </html>
     `
   });
-  
+
   if (adminEmailError) {
     console.error("Error al enviar el email al administrador:", adminEmailError);
   }
@@ -239,7 +239,7 @@ export async function sendMotorhomeBookingEmails(data: any) {
       closing: "Si tienes cualquier duda, estamos a tu disposición."
     }
   };
-  
+
   const texts = clientTexts[lang];
 
   // --- 1. Email per al client (amb multi-idioma) ---
@@ -273,45 +273,45 @@ export async function sendVehicleBookingEmails(data: any) {
   const lang: 'ca' | 'es' = (data.lang === 'es') ? 'es' : 'ca';
 
   const clientTexts = {
-      ca: {
-          subject: "🚗 Sol·licitud de Reserva de Vehicle Rebuda - Garatge Estació",
-          title: "Sol·licitud de Reserva Rebuda!",
-          greeting: `Hola, <strong>${data.customer_name}</strong>,`,
-          body1: "Hem rebut la teva sol·licitud per llogar un dels nostres vehicles.",
-          body2: "Un membre del nostre equip revisarà la disponibilitat i et contactarà al més aviat possible per a <strong>confirmar la reserva definitivament</strong> i explicar-te els següents passos.",
-          summaryTitle: "Resum de la teva sol·licitud",
-          vehicle: "Vehicle",
-          pickup: "Data de Recollida",
-          return: "Data de Retorn",
-          duration: "Durada",
-          days: "dies",
-          closing: "Si tens qualsevol dubte, estem a la teva disposició."
-      },
-      es: {
-          subject: "🚗 Solicitud de Reserva de Vehículo Recibida - Garatge Estació",
-          title: "¡Solicitud de Reserva Recibida!",
-          greeting: `Hola, <strong>${data.customer_name}</strong>,`,
-          body1: "Hemos recibido tu solicitud para alquilar uno de nuestros vehículos.",
-          body2: "Un miembro de nuestro equipo revisará la disponibilidad y te contactará lo antes posible para <strong>confirmar la reserva definitivamente</strong> y explicarte los siguientes pasos.",
-          summaryTitle: "Resumen de tu solicitud",
-          vehicle: "Vehículo",
-          pickup: "Fecha de Recogida",
-          return: "Fecha de Devolución",
-          duration: "Duración",
-          days: "días",
-          closing: "Si tienes cualquier duda, estamos a tu disposición."
-      }
+    ca: {
+      subject: "🚗 Sol·licitud de Reserva de Vehicle Rebuda - Garatge Estació",
+      title: "Sol·licitud de Reserva Rebuda!",
+      greeting: `Hola, <strong>${data.customer_name}</strong>,`,
+      body1: "Hem rebut la teva sol·licitud per llogar un dels nostres vehicles.",
+      body2: "Un membre del nostre equip revisarà la disponibilitat i et contactarà al més aviat possible per a <strong>confirmar la reserva definitivament</strong> i explicar-te els següents passos.",
+      summaryTitle: "Resum de la teva sol·licitud",
+      vehicle: "Vehicle",
+      pickup: "Data de Recollida",
+      return: "Data de Retorn",
+      duration: "Durada",
+      days: "dies",
+      closing: "Si tens qualsevol dubte, estem a la teva disposició."
+    },
+    es: {
+      subject: "🚗 Solicitud de Reserva de Vehículo Recibida - Garatge Estació",
+      title: "¡Solicitud de Reserva Recibida!",
+      greeting: `Hola, <strong>${data.customer_name}</strong>,`,
+      body1: "Hemos recibido tu solicitud para alquilar uno de nuestros vehículos.",
+      body2: "Un miembro de nuestro equipo revisará la disponibilidad y te contactará lo antes posible para <strong>confirmar la reserva definitivamente</strong> y explicarte los siguientes pasos.",
+      summaryTitle: "Resumen de tu solicitud",
+      vehicle: "Vehículo",
+      pickup: "Fecha de Recogida",
+      return: "Fecha de Devolución",
+      duration: "Duración",
+      days: "días",
+      closing: "Si tienes cualquier duda, estamos a tu disposición."
+    }
   };
-  
+
   const texts = clientTexts[lang];
 
   // --- 1. Email per al client ---
   await resend.emails.send({
-      from: FROM_EMAIL,
-      to: data.customer_email,
-      subject: texts.subject,
-      replyTo: ADMIN_EMAIL,
-      html: `<!DOCTYPE html>
+    from: FROM_EMAIL,
+    to: data.customer_email,
+    subject: texts.subject,
+    replyTo: ADMIN_EMAIL,
+    html: `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8">
@@ -358,11 +358,11 @@ export async function sendVehicleBookingEmails(data: any) {
 
   // --- 2. Email per a l'administrador ---
   await resend.emails.send({
-      from: FROM_EMAIL,
-      to: ADMIN_EMAIL,
-      subject: `🚗 Nova Reserva de Vehicle: ${data.vehicle_name}`,
-      replyTo: data.customer_email,
-      html: `<!DOCTYPE html>
+    from: FROM_EMAIL,
+    to: ADMIN_EMAIL,
+    subject: `🚗 Nova Reserva de Vehicle: ${data.vehicle_name}`,
+    replyTo: data.customer_email,
+    html: `<!DOCTYPE html>
 <html lang="ca">
 <head>
   <meta charset="UTF-8">
@@ -384,4 +384,80 @@ export async function sendVehicleBookingEmails(data: any) {
 </body>
 </html>`
   });
+}
+
+
+// ✅ NOVA FUNCIÓ AFEGIDA
+/**
+ * Notifica a l'administrador que una cita de taller ha estat cancel·lada.
+ */
+// dins de lib/email.ts
+
+export async function sendCancellationNotificationEmail(recordFields: any) {
+  try {
+    const clientName = recordFields.Name || 'N/A';
+    const service = recordFields.Service || 'N/A';
+    const appointmentDate = recordFields.Date ? format(new Date(recordFields.Date as string), 'dd/MM/yyyy') : 'N/A';
+    const appointmentTime = recordFields.Time || 'N/A';
+    const clientPhone = recordFields.Phone || 'N/A';
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: `❌ Cita de Taller Cancel·lada: ${clientName}`,
+      html: `
+        <div style="font-family:sans-serif;padding:20px;color:#333;">
+          <h2 style="color:#D9534F;">⚠️ Notificació: Cita Cancel·lada</h2>
+          <p>L'usuari <strong>${clientName}</strong> ha cancel·lat la seva cita.</p>
+          <div style="background-color:#f9f9f9;border:1px solid #eee;padding:15px;border-radius:5px;">
+            <h3 style="margin-top:0;">Detalls de la cita cancel·lada:</h3>
+            <ul style="list-style-type:none;padding:0;">
+              <li style="margin-bottom:10px;"><strong>Client:</strong> ${clientName}</li>
+              <li style="margin-bottom:10px;"><strong>Telèfon:</strong> ${clientPhone}</li>
+              <li style="margin-bottom:10px;"><strong>Servei:</strong> ${service}</li>
+              <li style="margin-bottom:10px;"><strong>Data:</strong> ${appointmentDate} a les ${appointmentTime}</li>
+            </ul>
+          </div>
+          <p style="font-size:12px;color:#777;">Aquesta cita ha estat eliminada d'Airtable i de Google Calendar.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Error en enviar l'email de notificació de cancel·lació:", error);
+  }
+}
+
+
+/**
+ * Envia un email de notificació d'error al desenvolupador.
+ */
+export async function sendErrorNotificationEmail(error: any) {
+  const DEVELOPER_EMAIL = 'matutano8@gmail.com'; // La teva adreça d'email
+
+  // Formategem l'error per a que sigui llegible a l'email
+  const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+  const errorStack = error instanceof Error ? error.stack : 'No stack available';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL, // El mateix remitent que ja fas servir
+      to: DEVELOPER_EMAIL,
+      subject: "🔴 ALERTA: Error Crític a la Web Garatge Estació",
+      html: `
+        <h1>S'ha produït un error a la Server Action</h1>
+        <p>Un usuari ha intentat crear una cita i el procés ha fallat.</p>
+        <hr>
+        <h3>Missatge de l'Error:</h3>
+        <p style="color:red; font-weight:bold;">${errorMessage}</p>
+        <hr>
+        <h3>Stack Trace (pista tècnica):</h3>
+        <pre style="background-color:#f4f4f4; padding:10px; border-radius:5px; white-space:pre-wrap;"><code>${errorStack}</code></pre>
+        <hr>
+        <p>L'error s'ha produït a: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}</p>
+      `,
+    });
+    console.log(`✅ Notificació d'error enviada a ${DEVELOPER_EMAIL}`);
+  } catch (notificationError) {
+    console.error("🔴🔴 ERROR CRÍTIC: Ha fallat fins i tot l'enviament de la notificació d'error.", notificationError);
+  }
 }

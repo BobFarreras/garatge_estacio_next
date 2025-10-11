@@ -1,142 +1,136 @@
+// lib/google-calendar.ts
+
 import { google } from 'googleapis';
-import { format as formatDate, addDays, addMinutes } from 'date-fns';
-import crypto from 'crypto';
+import { format } from 'date-fns';
 
-// --- 1. CONFIGURA EL CLIENT D'AUTENTICACIÓ OAUTH 2.0 ---
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET
-);
+// Funció per obtenir un client autenticat amb el Compte de Servei
+async function getAuthenticatedClient() {
+  // 1. Llegeix la variable d'entorn (que ara està en Base64)
+  const credentialsBase64 = process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS;
 
-oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-});
+  if (!credentialsBase64) {
+    throw new Error('La variable d\'entorn GOOGLE_SERVICE_ACCOUNT_CREDENTIALS no està definida.');
+  }
 
-const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-const calendarId = process.env.GOOGLE_CALENDAR_ID;
-const timeZone = 'Europe/Madrid';
+  // 2. Descodifica el text de Base64 a un string JSON normal
+  const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString('utf-8');
 
-// --- 2. FUNCIONS HELPER ---
+  // 3. Ara, el JSON.parse hauria de funcionar sense problemes
+  const credentials = JSON.parse(credentialsJson);
 
-function generateEventId(seed: string): string {
-  const hash = crypto.createHash('sha256').update(seed).digest('hex');
-  return hash.substring(0, 32).replace(/[g-z]/gi, (match) => {
-    return String.fromCharCode(match.charCodeAt(0) - 7);
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/calendar'],
   });
+
+  // No cal obtenir el client, només passa l'objecte GoogleAuth
+  return google.calendar({ version: 'v3', auth });
 }
 
-export async function createGoogleCalendarEvent(data: any, airtableRecordId: string): Promise<{ id: string, htmlLink: string } | null> {
+// La resta de les teves funcions, ara utilitzant el nou mètode d'autenticació
+export async function createGoogleCalendarEvent(data: any, airtableRecordId: string) {
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  if (!calendarId) {
+    console.error('GOOGLE_CALENDAR_ID no està definit.');
+    return null;
+  }
+
   try {
-    const startDateTime = new Date(`${data.date}T${data.time}`);
-    const endDateTime = addMinutes(startDateTime, 60);
+    const calendar = await getAuthenticatedClient();
+    const appointmentDate = new Date(`${data.date}T${data.time}`);
+    const endDate = new Date(appointmentDate.getTime() + 60 * 60 * 1000); // 1 hora de durada
 
     const event = {
-      id: generateEventId(airtableRecordId),
-      summary: `Cita: ${data.service} - ${data.name}`,
-      description: `Client: ${data.name}\nEmail: ${data.email}\nTelèfon: ${data.phone}\nServei: ${data.service}\n\nMissatge: ${data.message ?? ''}`,
-      start: { dateTime: startDateTime.toISOString(), timeZone: timeZone },
-      end: { dateTime: endDateTime.toISOString(), timeZone: timeZone },
-      attendees: [{ email: data.email, displayName: data.name }],
-      conferenceData: { createRequest: { requestId: crypto.randomUUID() } },
-      reminders: { useDefault: true },
+      summary: `Cita Taller: ${data.service} - ${data.name}`,
+      description: `Client: ${data.name}\nTelèfon: ${data.phone}\nEmail: ${data.email}\n\nVehicle: ${data.vehicleBrand} ${data.vehicleModel}\nServei: ${data.service}\n\nMissatge del client:\n${data.message || 'Cap'}\n\nID Airtable: ${airtableRecordId}`,
+      start: {
+        dateTime: appointmentDate.toISOString(),
+        timeZone: 'Europe/Madrid',
+      },
+      end: {
+        dateTime: endDate.toISOString(),
+        timeZone: 'Europe/Madrid',
+      },
+      //COLOR DEL CALENDARI
+      colorId: '11',
+
     };
 
     const createdEvent = await calendar.events.insert({
       calendarId: calendarId,
       requestBody: event,
-      conferenceDataVersion: 1,
-      sendUpdates: 'none',
     });
 
-    if (!createdEvent.data.id || !createdEvent.data.htmlLink) throw new Error("L'esdeveniment no s'ha creat correctament a Google.");
-    
-    return { id: createdEvent.data.id, htmlLink: createdEvent.data.htmlLink };
+    console.log('✅ Event de Google Calendar creat:', createdEvent.data.htmlLink);
+    return createdEvent.data;
+
   } catch (error) {
-    console.error('Google Calendar API error (Cita): ', error);
-    return null;
+    console.error('🔴 Google Calendar API error (Cita):', error);
+    throw error; // <-- Rellancem l'error perquè l'acció principal el capturi
   }
 }
 
-export async function createGoogleCalendarRentalEvent(data: any, airtableRecordId: string): Promise<{ id: string, htmlLink: string } | null> {
-    try {
-        const startDate = new Date(data.start_date);
-        const endDate = new Date(data.end_date);
-        const googleEndDate = addDays(endDate, 1);
-    
-        const event = {
-          id: generateEventId(airtableRecordId),
-          summary: `Lloguer: ${data.Vehicle_Name} - ${data.customer_name}`,
-          description: `Client: ${data.customer_name}\nEmail: ${data.customer_email}\nTelèfon: ${data.customer_phone}`,
-          start: { date: formatDate(startDate, 'yyyy-MM-dd') },
-          end: { date: formatDate(googleEndDate, 'yyyy-MM-dd') },
-          attendees: [{ email: data.customer_email, displayName: data.customer_name }],
-          reminders: { useDefault: true },
-        };
-    
-        const createdEvent = await calendar.events.insert({
-            calendarId: calendarId,
-            requestBody: event,
-            sendUpdates: 'none',
-        });
-    
-        if (!createdEvent.data.id || !createdEvent.data.htmlLink) throw new Error("L'esdeveniment no s'ha creat correctament a Google.");
-    
-        return { id: createdEvent.data.id, htmlLink: createdEvent.data.htmlLink };
-    } catch (error) {
-        console.error('Google Calendar API error (Lloguer): ', error);
-        return null;
-    }
-}
+export async function deleteGoogleCalendarEvent(eventId: string) {
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  if (!calendarId) {
+    console.error('GOOGLE_CALENDAR_ID no està definit.');
+    return;
+  }
 
-// ✅ NOVA FUNCIÓ PER ELIMINAR ESDEVENIMENTS
-export async function deleteGoogleCalendarEvent(eventId: string): Promise<boolean> {
   try {
+    const calendar = await getAuthenticatedClient();
     await calendar.events.delete({
       calendarId: calendarId,
       eventId: eventId,
-      sendUpdates: 'all', // Notifica als assistents (el client) de la cancel·lació
     });
-    console.log(`Esdeveniment ${eventId} eliminat de Google Calendar.`);
-    return true;
-  } catch (error: any) {
-    // Si l'error és un 404 (Not Found) o 410 (Gone), significa que l'esdeveniment ja no existeix.
-    // Ho tractem com un èxit per evitar que el procés s'aturi.
-    if (error.code === 404 || error.code === 410) {
-      console.warn(`L'esdeveniment ${eventId} ja estava eliminat de Google Calendar.`);
-      return true;
-    }
-    console.error(`Error en eliminar l'esdeveniment ${eventId} de Google Calendar:`, error);
-    return false;
+    console.log(`✅ Event de Google Calendar esborrat: ${eventId}`);
+  } catch (error) {
+    console.error(`🔴 Error en esborrar l'event ${eventId} de Google Calendar:`, error);
   }
 }
-export async function createGoogleCalendarVehicleEvent(data: any, airtableRecordId: string): Promise<{ id: string, htmlLink: string } | null> {
-  try {
-      const startDate = new Date(data.start_date);
-      const endDate = new Date(data.end_date);
-      const googleEndDate = addDays(endDate, 1); // Google Calendar exclou l'últim dia en esdeveniments de dia sencer
-  
-      const event = {
-        id: generateEventId(airtableRecordId),
-        // ✅ CANVI: Adaptem el resum per a vehicles
-        summary: `Lloguer Vehicle: ${data.vehicle_name} - ${data.customer_name}`,
-        description: `Client: ${data.customer_name}\nEmail: ${data.customer_email}\nTelèfon: ${data.customer_phone}`,
-        start: { date: formatDate(startDate, 'yyyy-MM-dd') },
-        end: { date: formatDate(googleEndDate, 'yyyy-MM-dd') },
-        attendees: [{ email: data.customer_email, displayName: data.customer_name }],
-        reminders: { useDefault: true },
-      };
-  
-      const createdEvent = await calendar.events.insert({
-          calendarId: calendarId,
-          requestBody: event,
-          sendUpdates: 'none',
-      });
-  
-      if (!createdEvent.data.id || !createdEvent.data.htmlLink) throw new Error("L'esdeveniment no s'ha creat correctament a Google.");
-  
-      return { id: createdEvent.data.id, htmlLink: createdEvent.data.htmlLink };
-  } catch (error) {
-      console.error('Google Calendar API error (Lloguer Vehicle): ', error);
-      return null;
+
+// ✅ --- NOVA FUNCIÓ PER AL LLOGUER D'AUTOCARAVANES ---
+export async function createGoogleCalendarRentalEvent(data: any, airtableRecordId: string) {
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  if (!calendarId) {
+    console.error('GOOGLE_CALENDAR_ID no està definit.');
+    return null;
   }
+
+  try {
+    const calendar = await getAuthenticatedClient();
+    
+    // Per a reserves de diversos dies, creem un esdeveniment de "tot el dia"
+    const event = {
+      summary: `Lloguer AC: ${data.Vehicle_Name} - ${data.customer_name}`,
+      description: `Client: ${data.customer_name}\nTelèfon: ${data.customer_phone}\nEmail: ${data.customer_email}\n\nID Airtable: ${airtableRecordId}`,
+      start: {
+        // Data d'inici (format YYYY-MM-DD)
+        date: data.start_date,
+      },
+      end: {
+        // La data final en esdeveniments de tot el dia és exclusiva,
+        // per la qual cosa hem de sumar un dia.
+        date: format(addDays(new Date(data.end_date), 1), 'yyyy-MM-dd'),
+      },
+      // Canviem el color per a diferenciar-lo de les cites de taller (verd clar)
+      colorId: '2', 
+    };
+
+    const createdEvent = await calendar.events.insert({
+      calendarId: calendarId,
+      requestBody: event,
+    });
+
+    console.log('✅ Event de Lloguer a Google Calendar creat:', createdEvent.data.htmlLink);
+    return createdEvent.data;
+
+  } catch (error) {
+    console.error('🔴 Google Calendar API error (Lloguer):', error);
+    throw error;
+  }
+}
+
+function addDays(arg0: Date, arg1: number): any {
+  throw new Error('Function not implemented.');
 }
