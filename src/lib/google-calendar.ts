@@ -126,3 +126,44 @@ export async function createGoogleCalendarRentalEvent(data: any, airtableRecordI
         throw error;
     }
 }
+
+// ✅ --- NOVA FUNCIÓ PER AL LLOGUER DE VEHICLES ---
+export async function createGoogleCalendarVehicleEvent(data: any, airtableRecordId: string) {
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  if (!calendarId) {
+    console.error('GOOGLE_CALENDAR_ID no està definit.');
+    return null;
+  }
+
+  try {
+    const calendar = await getAuthenticatedClient();
+    
+    // Google Calendar necessita que la data final sigui un dia després per a esdeveniments de dia sencer
+    const endDateForGoogle = format(addDays(new Date(data.end_date), 1), 'yyyy-MM-dd');
+
+    const event = {
+        summary: `Lloguer Vehicle: ${data.vehicle_name} - ${data.customer_name}`,
+        description: `Client: ${data.customer_name}\nTelèfon: ${data.customer_phone}\nEmail: ${data.customer_email}\n\nID Airtable: ${airtableRecordId}`,
+        start: {
+            date: data.start_date, // Format YYYY-MM-DD
+        },
+        end: {
+            date: endDateForGoogle, // Format YYYY-MM-DD
+        },
+        // Un altre color per diferenciar-los (ex: 5 per a Groc)
+        colorId: '5', 
+    };
+
+    const createdEvent = await calendar.events.insert({
+        calendarId: calendarId,
+        requestBody: event,
+    });
+
+    console.log('✅ Event de Lloguer de Vehicle a Google Calendar creat:', createdEvent.data.htmlLink);
+    return createdEvent.data;
+
+  } catch (error) {
+    console.error('🔴 Google Calendar API error (Lloguer Vehicle):', error);
+    throw error; // Rellancem l'error
+  }
+}

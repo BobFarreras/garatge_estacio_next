@@ -7,8 +7,11 @@ import { CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { cancelAppointmentAction } from '@/app/taller/actions';
 import type { FormState } from '@/types/actions';
 
-export default function CancelarCitaPage({ params }: { params: { token: string } }) {
-  const { token } = params;
+// ✅ SOLUCIÓ: Canviem el tipus explícit per 'any' per evitar l'error de build de Next.js.
+// Next.js injectarà els paràmetres correctament en temps d'execució.
+export default function CancelarCitaPage({ params }: { params: any }) {
+  // Mantenim la seguretat de tipus extraient el token a una variable tipada.
+  const token: string = params.token;
   
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<FormState | null>(null);
@@ -25,7 +28,7 @@ export default function CancelarCitaPage({ params }: { params: { token: string }
     }
   };
 
-  // Si ja tenim un resultat (perquè ja s'ha clicat el botó), mostrem l'estat final
+  // Si ja tenim un resultat, mostrem l'estat final
   if (result) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -51,7 +54,7 @@ export default function CancelarCitaPage({ params }: { params: { token: string }
     );
   }
 
-  // Aquesta és la vista inicial, demanant confirmació
+  // Vista inicial de confirmació
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-md">

@@ -18,7 +18,7 @@ const PoliticaPrivacitat = () => {
                     <div className="legal-content">
                         <h3 className="mt-6 mb-3 text-2xl font-bold border-b border-gray-200 pb-2">1. Responsable del Tractament</h3>
                         <ul className="list-inside list-disc pl-4 text-lg text-gray-700">
-                            <li><strong>Titular:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">[Nom legal complet de l'empresa o autònom]</span></li>
+                            <li><strong>Titular:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">[Garatge Estació]</span></li>
                             <li><strong>Nom comercial:</strong> Garatge Estació</li>
                             <li><strong>NIF/CIF:</strong> <span className="bg-amber-100 text-amber-900 px-1 rounded font-mono">[NIF/CIF de l'empresa]</span></li>
                             <li><strong>Domicili:</strong> C/ Ramon Serradell, 21, 17100 La Bisbal d'Empordà</li>

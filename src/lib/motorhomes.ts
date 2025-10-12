@@ -32,6 +32,7 @@ export async function getMotorhomes(): Promise<Motorhome[]> {
             id: record.id,
             id_numeric: fields.id as number,
             name: (fields[`name_${lang}`] || fields.name_ca) as string,
+            name_ca: fields.name_ca as string,
             description: (fields[`description_${lang}`] || fields.description_ca) as string,
             image_url: fields.image_url as string,
             gallery_images: processArrayField(fields.gallery_images),

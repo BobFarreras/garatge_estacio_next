@@ -1,40 +1,39 @@
-import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+"use server";
+
 import { z } from 'zod';
+import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Esquema de validació de Zod al servidor
+// Esquema de validació estricte al servidor
 const contactSchema = z.object({
-  name: z.string().min(1, { message: "El nom és obligatori" }),
-  email: z.string().email({ message: "L'email no és vàlid" }),
+  name: z.string().min(2),
+  email: z.string().email(),
   phone: z.string().optional(),
   subject: z.string().optional(),
-  message: z.string().min(10, { message: "El missatge és massa curt" }),
-  privacyPolicy: z.boolean().refine(val => val === true, {
+  message: z.string().min(10),
+  privacyPolicy: z.literal(true, {
     message: "Has d'acceptar la política de privacitat.",
   }),
 });
 
-export async function POST(request: Request) {
+// Aquest tipus inferit és clau: privacyPolicy és de tipus `true`
+export type ContactFormData = z.infer<typeof contactSchema>;
+
+export async function sendContactEmail(data: ContactFormData) {
+  const validation = contactSchema.safeParse(data);
+
+  if (!validation.success) {
+    return { success: false, error: 'Dades invàlides.' };
+  }
+
+  const { name, email, phone, subject, message } = validation.data;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   try {
-    const body = await request.json();
-
-    // 1. Validació robusta amb Zod
-    const validation = contactSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json({ error: 'Dades invàlides', details: validation.error.flatten().fieldErrors }, { status: 400 });
-    }
-    
-    const { name, email, phone, subject, message } = validation.data;
-
-    // 2. Enviament de l'email amb HTML directament
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'Garatge Estació <web@garatgeestacio.com>',
       to: ['info@garatgeestacio.com'],
       replyTo: email,
       subject: subject || `Nou Missatge de Contacte de ${name}`,
-      // ✅ Utilitzem la plantilla HTML directament aquí
       html: `
         <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: sans-serif;">
           <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -75,14 +74,14 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      console.error('Error de Resend:', error);
-      return NextResponse.json({ error: "No s'ha pogut enviar el correu" }, { status: 500 });
+      console.error('Resend Error:', error);
+      return { success: false, error: "No s'ha pogut enviar el correu." };
     }
 
-    return NextResponse.json({ message: 'Correu enviat correctament' });
+    return { success: true, message: 'Correu enviat correctament!' };
 
-  } catch (error) {
-    console.error('Error a l\'API de contacte:', error);
-    return NextResponse.json({ error: 'Error intern del servidor' }, { status: 500 });
+  } catch (e) {
+    console.error('Error a la Server Action:', e);
+    return { success: false, error: 'Error intern del servidor.' };
   }
 }
