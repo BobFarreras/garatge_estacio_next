@@ -1,4 +1,4 @@
-// src/components/forms/AppointmentFormUI.tsx
+// src/app/taller/_components/AppointmentFormUI.tsx (VERSIÓ CORREGIDA DE DISSENY)
 
 import React from 'react';
 import Link from 'next/link';
@@ -14,10 +14,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from '@/components/ui/button';
 
 import { AppointmentSchemaType, ACCEPTED_IMAGE_TYPES } from '@/lib/utils/appointmentValidation';
-import { APPOINTMENT_CONFIG } from '@/config/taller';
+// Assumint que aquesta configuració existeix
+// import { APPOINTMENT_CONFIG } from '@/config/taller'; 
 
 // -------------------------------------------------------------
-// Tipus de propietats del component
+// Tipus de propietats del component (mantingut)
 // -------------------------------------------------------------
 interface AppointmentFormUIProps {
   form: UseFormReturn<AppointmentSchemaType>;
@@ -61,17 +62,19 @@ export default function AppointmentFormUI({
   } = form;
 
   const attachmentError = errors.attachments?.message;
+  const maxFiles = 3;
   const acceptedFormatsDisplay = ACCEPTED_IMAGE_TYPES.map(t => t.split('/')[1]).join(', ');
 
   // -----------------------------------------------------------
   // Renderitzat
   // -----------------------------------------------------------
   return (
-    <form onSubmit={onSubmit} className="space-y-4 pt-4">
+    // ✅ Augmentem l'espaiat general per separar millor els blocs
+    <form onSubmit={onSubmit} className="space-y-6 pt-4">
 
       {/* -------------------------------------------------------
-         🧍 Camps de contacte
-      ------------------------------------------------------- */}
+         🧍 Camps de contacte
+      ------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="name">{t('form.labelName')}</Label>
@@ -87,25 +90,27 @@ export default function AppointmentFormUI({
       </div>
 
       {/* -------------------------------------------------------
-         ✉️ Correu electrònic
-      ------------------------------------------------------- */}
-      <div>
+         ✉️ Correu electrònic
+      ------------------------------------------------------- */}
+      <div className="space-y-1">
         <Label htmlFor="email">{t('form.labelEmail')}</Label>
         <Input id="email" type="email" {...register('email')} placeholder={t('form.emailPlaceholder')} />
         {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
       </div>
 
       {/* -------------------------------------------------------
-         🚗 Dades del vehicle
-      ------------------------------------------------------- */}
+         🚗 Dades del vehicle
+      ------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
+        {/* Marca */}
+        <div className="space-y-1">
           <Label htmlFor="vehicleBrand">{t('form.labelVehicleBrand')}</Label>
           <Input id="vehicleBrand" {...register('vehicleBrand')} placeholder={t('form.brandPlaceholder')} />
           {errors.vehicleBrand && <p className="text-red-500 text-sm mt-1">{errors.vehicleBrand.message}</p>}
         </div>
 
-        <div>
+        {/* Model/Matrícula */}
+        <div className="space-y-1">
           <Label htmlFor="vehicleModel">{t('form.labelVehiclePlate')}</Label>
           <Input
             id="vehicleModel"
@@ -122,16 +127,18 @@ export default function AppointmentFormUI({
       </div>
 
       {/* -------------------------------------------------------
-         📅 Data i hora
-      ------------------------------------------------------- */}
+         📅 Data i hora
+      ------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
+        {/* Data */}
+        <div className="space-y-1">
           <Label htmlFor="date">{t('form.labelDate')}</Label>
           <Input id="date" type="date" {...register('date')} min={minBookingDateString} />
           {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
         </div>
 
-        <div>
+        {/* Hora */}
+        <div className="space-y-1">
           <Label htmlFor="time">{t('form.labelTime')}</Label>
           <div className="relative">
             {isLoadingSlots && (
@@ -141,14 +148,15 @@ export default function AppointmentFormUI({
               {...register('time')}
               id="time"
               disabled={!selectedDate || isLoadingSlots || availableSlots.length === 0}
-              className="w-full p-2 border rounded-md bg-white disabled:bg-gray-100 focus:ring-2 focus:ring-red-500"
+              // ✅ Estil ajustat per tenir una aparença consistent amb Input (alçada i padding)
+              className="w-full h-10 p-2 border rounded-md bg-white disabled:bg-gray-100 focus:ring-2 focus:ring-red-500 appearance-none"
             >
               <option value="">
                 {isLoadingSlots
                   ? t('form.loading')
                   : availableSlots.length > 0
-                  ? t('form.selectTime')
-                  : t('validation.noWeekend')}
+                    ? t('form.selectTime')
+                    : t('validation.noWeekend')}
               </option>
               {availableSlots.map((slot: string) => (
                 <option key={slot} value={slot}>{slot}</option>
@@ -160,20 +168,20 @@ export default function AppointmentFormUI({
       </div>
 
       {/* -------------------------------------------------------
-         💬 Missatge
-      ------------------------------------------------------- */}
-      <div>
+         💬 Missatge
+      ------------------------------------------------------- */}
+      <div className="space-y-1">
         <Label htmlFor="message">{t('form.labelMessageOptional')}</Label>
         <Textarea id="message" {...register('message')} placeholder={t('form.messagePlaceholder')} />
         {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>}
       </div>
 
       {/* -------------------------------------------------------
-         📎 Adjunts d’imatge
-      ------------------------------------------------------- */}
-      <div>
+         📎 Adjunts d’imatge
+      ------------------------------------------------------- */}
+      <div className="space-y-1">
         <Label htmlFor="attachments">
-          Adjuntar Imatges (Opcional, màx. {APPOINTMENT_CONFIG.MAX_FILES})
+          Adjuntar Imatges (Opcional, màx. {maxFiles})
         </Label>
         <p className="text-xs text-gray-500 mt-1 mb-2">
           Formats acceptats: {acceptedFormatsDisplay}
@@ -213,8 +221,8 @@ export default function AppointmentFormUI({
       </div>
 
       {/* -------------------------------------------------------
-         🔒 Política de privacitat
-      ------------------------------------------------------- */}
+         🔒 Política de privacitat
+      ------------------------------------------------------- */}
       <div className="items-top flex space-x-2 pt-2">
         <div className="grid gap-1.5 leading-none">
           <Controller
@@ -249,8 +257,8 @@ export default function AppointmentFormUI({
       <input type="hidden" {...register('service')} />
 
       {/* -------------------------------------------------------
-         🚀 Botó d’enviament
-      ------------------------------------------------------- */}
+         🚀 Botó d’enviament
+      ------------------------------------------------------- */}
       <Button
         type="submit"
         disabled={isSubmitting}
