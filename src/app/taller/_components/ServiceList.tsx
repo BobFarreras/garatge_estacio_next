@@ -1,32 +1,72 @@
 // app/taller/ServiceList.tsx
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // <-- useRef, useEffect afegits
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import AppointmentForm from './AppointmentForm'; // <-- Importem el formulari aïllat
+import { toast } from 'sonner'; // <-- Importem toast per a la notificació del bypass
+import AppointmentForm from './AppointmentForm'; 
 import type { Service } from '@/types/service';
 
 interface ServiceListProps {
-    services: Service[];
+    services: Service[];
 }
 
 export default function ServiceList({ services }: ServiceListProps) {
-    const { t } = useTranslation();
-    const [isBookingOpen, setIsBookingOpen] = useState(false);
-    const [selectedService, setSelectedService] = useState<string | null>(null);
+    const { t } = useTranslation();
+    const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [selectedService, setSelectedService] = useState<string | null>(null);
 
-    // Aquesta funció s'executa quan l'usuari fa clic a una targeta de servei.
-    const handleServiceSelection = (serviceTitle: string) => {
-        setSelectedService(serviceTitle);
-        setIsBookingOpen(true);
-    };
+    // ---------------------------------------------------------------------
+    // ✅ Lògica del "Mode de Desenvolupament" (Easter Egg)
+    // ---------------------------------------------------------------------
+    const [isBypassMode, setIsBypassMode] = useState(false);
+    const clickCountRef = useRef(0);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    return (
+    const handleTitleClick = () => {
+        clickCountRef.current += 1;
+
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+
+        timerRef.current = setTimeout(() => {
+            clickCountRef.current = 0;
+            timerRef.current = null;
+        }, 500);
+
+        if (clickCountRef.current >= 3) {
+            if (!isBypassMode) {
+                setIsBypassMode(true);
+                toast.info("Mode Bypass de Data activat!", {
+                    description: "Ara pots seleccionar qualsevol dia. No oblidis recarregar per desactivar-ho.",
+                });
+            }
+            clickCountRef.current = 0; // Reinicia el comptador
+        }
+    };
+    
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+            }
+        };
+    }, []);
+    // ---------------------------------------------------------------------
+
+    const handleServiceSelection = (serviceTitle: string) => {
+        setSelectedService(serviceTitle);
+        setIsBookingOpen(true);
+    };
+
+    return (
+
+
         <>
             <section id="services" className="py-24 bg-gray-50">
                 <div className="container mx-auto px-4">
@@ -76,11 +116,13 @@ export default function ServiceList({ services }: ServiceListProps) {
                     </div>
                 </div>
             </section>
-
             <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
                 <DialogContent className="w-full max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">
                     <DialogHeader>
-                        <DialogTitle className="text-xl sm:text-2xl">
+                        <DialogTitle
+                            className="text-xl sm:text-2xl cursor-pointer" // ✅ Afegim cursor-pointer
+                            onClick={handleTitleClick} // ✅ Afegim l'esdeveniment de clic aquí
+                        >
                             {t('appointment.bookingFor')}{' '}
                             <span className="text-red-600">{selectedService}</span>
                         </DialogTitle>
@@ -88,13 +130,11 @@ export default function ServiceList({ services }: ServiceListProps) {
                             {t('appointment.fillForm')}
                         </DialogDescription>
                     </DialogHeader>
-                    {/*
-                      Passem el servei seleccionat i una funció per tancar el diàleg.
-                      Així el formulari és independent i només ens avisa quan ha acabat.
-                    */}
-                    <AppointmentForm 
+                    <AppointmentForm
                         selectedService={selectedService}
-                        onFormSubmit={() => setIsBookingOpen(false)} 
+                        onFormSubmit={() => setIsBookingOpen(false)}
+                        // ✅ Propaguem l'estat del bypass al formulari
+                        isBypassMode={isBypassMode}
                     />
                 </DialogContent>
             </Dialog>
