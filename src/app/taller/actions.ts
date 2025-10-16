@@ -55,27 +55,24 @@ async function uploadToCloudinary(file: File, identifier: string): Promise<strin
 }
 
 // -------------------------------------------------------------
-// ✅ ACCIÓ 1: CREAR CITA
+// ✅ ACCIÓ 1: CREAR CITA (Corregit)
 // -------------------------------------------------------------
-// --- ACCIÓ PER CREAR CITA ---
 export async function createAppointmentAction(prevState: FormState, formData: FormData): Promise<FormState> {
     console.log("\n--- 🟢 INICI DE L'ACCIÓ AL SERVIDOR ---");
 
-    // 1. ✅ MODIFICACIÓ CLAU: LLEGIR LA BANDERA DE BYPASS I ELIMINAR-LA DEL FORMULARIO
+    // 1. ✅ MODIFICACIÓ CLAU: LLEGIR LA BANDERA DE BYPASS
+    // La Server Action llegeix l'estat d'interactivitat enviat pel client (Client Component).
     const isBypassMode = formData.get('isBypassMode') === 'true';
-    formData.delete('isBypassMode'); // <-- Eliminem la clau del FormData
+    // No cal eliminar-la del FormData perquè Zod utilitza objectToValidate.
 
     // 2. Mapeig de FormData a Objecte amb Conversió Booleana
     const objectToValidate = {
         ...Object.fromEntries(formData),
-        // La bandera isBypassMode ja no està aquí si l'hem eliminat a dalt, 
-        // però privacyPolicy s'ha de mantenir:
+        // La clau 'isBypassMode' serà una string aquí, però l'esquema de Zod l'ignora.
         privacyPolicy: formData.get('privacyPolicy') === 'on',
     };
 
     // 3. Validació de dades amb Zod
-    // Ja que hem eliminat isBypassMode del FormData, objectToValidate només conté 
-    // camps coneguts per l'esquema de Zod.
     const validation = appointmentActionSchema.safeParse(objectToValidate);
     if (!validation.success) {
         console.error("🔴 SERVER: La validació de Zod ha fallat:", validation.error.flatten().fieldErrors);
@@ -89,21 +86,22 @@ export async function createAppointmentAction(prevState: FormState, formData: Fo
 
     const validatedData = validation.data;
 
-    // 4. Validacions de Lògica de Negoci al Servidor (utilitzant la variable 'isBypassMode' aïllada)
+    // 4. ✅ MODIFICACIÓ CLAU: Validació de Lògica de Negoci Condicional
     const selectedDate = new Date(validatedData.date + 'T12:00:00Z');
 
-    if (!isBypassMode) { // <-- Utilitzem la variable local isBypassMode (true/false)
-        // Només s'executa si el mode bypass NO està activat
+    if (!isBypassMode) { 
+        // Només s'executa si el mode bypass NO està activat (mode de producció normal)
         const minBookingDate = startOfDay(addDays(new Date(), APPOINTMENT_CONFIG.MIN_BOOKING_DAYS_AHEAD));
 
         if (isBefore(selectedDate, minBookingDate)) {
             return { success: false, error: `La reserva ha de ser con al menos ${APPOINTMENT_CONFIG.MIN_BOOKING_DAYS_AHEAD} dies d'antelació.` };
         }
     } else {
-        console.log("🟢 SERVER: Mode Bypass detectat. S'ignora la validació de 7 dies.");
+        // En mode bypass, s'ignora la validació de data mínima.
+        console.log("🟢 SERVER: Mode Bypass detectat. S'ignora la validació de dies d'antelació.");
     }
 
-    // Validació de cap de setmana (es manté)
+    // Validació de cap de setmana (es manté, ja que això sempre ha de ser una regla de negoci)
     const dayOfWeek = selectedDate.getUTCDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
         return { success: false, error: 'No es poden reservar cites en cap de setmana.' };
@@ -112,8 +110,6 @@ export async function createAppointmentAction(prevState: FormState, formData: Fo
     let airtableRecordId: string | null = null;
 
     try {
-        // ... (resta del codi d'Airtable, Cloudinary, etc.)
-
         // 5. Comprovació de disponibilitat (Mantingut)
         const formula = `AND(DATETIME_FORMAT({Date}, 'YYYY-MM-DD') = '${validatedData.date}', {Time} = '${validatedData.time}')`;
         const existingAppointments = await appointmentsTable.select({
@@ -142,7 +138,7 @@ export async function createAppointmentAction(prevState: FormState, formData: Fo
                 'Email': validatedData.email,
                 'Phone': validatedData.phone,
                 'VehicleBrand': validatedData.vehicleBrand,
-                'Matricula': validatedData.vehicleModel,
+                'Matricula': validatedData.vehicleModel, 
                 'Date': validatedData.date,
                 'Time': validatedData.time,
                 'Service': validatedData.service,
@@ -190,7 +186,6 @@ export async function createAppointmentAction(prevState: FormState, formData: Fo
         return { success: false, error: "S'ha produït un error inesperat. Si us plau, intenta-ho més tard." };
     }
 }
-
 
 // -------------------------------------------------------------
 // ✅ ACCIÓ 2: CANCEL·LAR CITA

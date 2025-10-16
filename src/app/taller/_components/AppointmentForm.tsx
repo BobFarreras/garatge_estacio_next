@@ -106,14 +106,13 @@ export default function AppointmentForm({ selectedService, onFormSubmit, isBypas
                 formData.append(key, String(value));
             }
         });
-        // DEBUG 2: Comprovem el valor de la bandera JUST abans d'enviar
-        console.log("CLIENT - isBypassMode ABANS d'enviar:", isBypassMode);
-        
+
         // Afegim els fitxers de l'estat local
         files.forEach(file => { formData.append('attachments', file); });
         formData.append('lang', i18n.language.startsWith('es') ? 'es' : 'ca');
 
-        // ✅ MODIFICACIÓ CLAU 1: Enviar la bandera al servidor
+        // ✅ MODIFICACIÓ CLAU: Enviar la bandera al servidor
+        // Això és essencial per comunicar l'estat del "triple click" a la Server Action.
         if (isBypassMode) {
             formData.append('isBypassMode', 'true');
         }

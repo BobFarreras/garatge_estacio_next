@@ -17,11 +17,12 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const SPANISH_PLATE_REGEX = /^[0-9]{4}[BCDFGHJKLMNPRSTVWXYZ]{3}$/i;
 
 // ✅ MODIFICACIÓ CLAU: La funció rep la bandera de bypass
-export const getAppointmentSchema = (t: (key: string, options?: any) => string, isBypassModeClient: boolean) => {
-    // La data mínima per a la validació estricta (7 dies)
-    const minBookingDate = addDays(new Date(), APPOINTMENT_CONFIG.MIN_BOOKING_DAYS_AHEAD);
+export const getAppointmentSchema = (t: (key: string, options?: any) => string, isBypassMode: boolean) => {    // La data mínima per a la validació estricta (7 dies)
+// Si bypass mode és true, el mínim és 0 dies.
+    const daysAhead = isBypassMode ? 0 : APPOINTMENT_CONFIG.MIN_BOOKING_DAYS_AHEAD;
+
+    const minBookingDate = addDays(new Date(), daysAhead);
     const minBookingDateStartOfDay = startOfDay(minBookingDate);
-    console.log("ZOD - isBypassModeClient rebut per Zod:", isBypassModeClient);
     return z.object({
         name: z.string().min(2, t('validation.nameRequired')),
         email: z.string().email(t('validation.emailInvalid')),
@@ -33,23 +34,15 @@ export const getAppointmentSchema = (t: (key: string, options?: any) => string, 
         service: z.string().nonempty(t('validation.serviceRequired')),
         date: z.string()
             .nonempty(t('validation.dateRequired'))
-            // ✅ CONDICIÓ CLAU: Si el mode bypass està actiu, saltem la validació de 7 dies
-            .refine(date => {
-                if (isBypassModeClient) {
-                    console.log("ZOD - BYPASS ACTIU, saltant validació d'antelació.");
-                    return true;
-                }
-                const isValid = !isBefore(new Date(date), minBookingDateStartOfDay);
-                console.log("ZOD - BYPASS INACTIU, comprovant antelació:", isValid);
-                return isValid;
-            }, {
-                message: t('validation.dateTooSoon', { days: APPOINTMENT_CONFIG.MIN_BOOKING_DAYS_AHEAD }),
+            // ✅ CONDICIÓ: La validació de data ara es basa en 'daysAhead' (0 o 7)
+            .refine(date => !isBefore(new Date(date), minBookingDateStartOfDay), {
+                message: t('validation.dateTooSoon', { days: daysAhead }), 
             })
             .refine(date => {
-                const day = new Date(date).getUTCDay();
+                const day = new Date(date).getUTCDay(); // Diumenge = 0, Dissabte = 6
                 return day !== 0 && day !== 6;
             }, {
-                message: t('validation.noWeekend'),
+                message: t('validation.noWeekend'), 
             }),
         time: z.string().nonempty(t('validation.timeRequired')),
         message: z.string().optional(),
