@@ -7,7 +7,6 @@
   "contact": "Contacte",
   "hyundaiDescription": "Descobreix la innovació i el disseny de la gamma Hyundai.",
   "kiaDescription": "Experimenta el poder de sorprendre amb la nova generació Kia.",
-
   "workshopPage": {
     "metaTitle": "Taller Mecànic - Garatge Estació | Reparació i Manteniment",
     "metaDescription": "Serveis de taller mecànic a La Bisbal. Demana cita prèvia online per a manteniment i pneumàtics.",
@@ -17,6 +16,8 @@
     "servicesSubtitle": "Experts en la cura del teu vehicle. Fes clic en un servei per demanar la teva cita."
   },
   "workshopServices": {
+    "canviDoli": "Canvi d'Oli",
+    "canviDoliDesc": "Servei complet de canvi d'oli i filtres per mantenir el motor en òptimes condicions.",
     "tires": "Canvi de pneumàtics",
     "tiresDesc": "Substitució, equilibrat i alineació de rodes per a una conducció segura.",
     "brakes": "Revisió de frens",
@@ -53,9 +54,27 @@
     "labelMessageOptional": "Missatge (Opcional)",
     "privacyAccept": "He llegit i accepto la",
     "privacyPolicy": "política de privacitat",
-    "sending": "Enviant"
+    "sending": "Enviant",
+    "labelVehicleBrand": "Marca del Vehicle",
+    "brandPlaceholder": "Ex: BMW",
+    "labelVehiclePlate": "Matrícula",
+    "platePlaceholder": "Ex: 4567ABC"
   },
-  
+  "validation": {
+    "nameRequired": "El nom és obligatori.",
+    "emailInvalid": "L'email no és vàlid.",
+    "phoneInvalid": "El telèfon no és vàlid.",
+    "dateRequired": "Has de seleccionar una data.",
+    "timeRequired": "Has de seleccionar una hora.",
+    "privacyRequired": "Has d'acceptar la política de privacitat per continuar.",
+    "messageTooShort": "El missatge ha de tenir almenys 10 caràcters.",
+    "brandRequired": "La marca del vehicle és obligatòria.",
+    "plateRequired": "La matrícula és obligatòria.",
+    "plateInvalid": "Format de matrícula invàlid (4 números i 3 lletres, ex: 4567ABC).",
+    "dateTooSoon": "La reserva ha de ser amb almenys {{days}} dies d'antelació.",
+    "noWeekend": "No es poden reservar cites en cap de setmana.",
+    "invalidFileType": "El format d'arxiu no és vàlid. Només s'accepten: {{formats}}."
+  },
   "appointment": {
     "title": "Demana Cita Prèvia Online",
     "subtitle": "Selecciona un servei per veure les hores disponibles i reservar.",
@@ -67,7 +86,6 @@
     "bookingFor": "Reserva per a:",
     "changeService": "Canviar servei",
     "fillForm": "Omple el següent formulari per finalitzar la teva reserva."
-
   },
   "toast": {
     "loadSlotsErrorTitle": "Error",
@@ -75,18 +93,11 @@
     "submitSuccessTitle": "✅ Cita Sol·licitada!",
     "submitSuccessDescription": "Hem rebut la teva sol·licitud. Aviat rebràs un correu de confirmació.",
     "submitErrorTitle": "Error",
-    "submitErrorDescription": "No s'ha pogut enviar la sol·licitud: {{errorMessage}}"
-  },
-  "validation": {
-    "nameRequired": "El nom és obligatori.",
-    "emailInvalid": "L'email no és vàlid.",
-    "phoneInvalid": "El telèfon no és vàlid.",
-    "dateRequired": "Has de seleccionar una data.",
-    "timeRequired": "Has de seleccionar una hora.",
-    "privacyRequired": "Has d'acceptar la política de privacitat per continuar.",
-    "messageTooShort": "El missatge ha de tenir almenys 10 caràcters."
-
-
+    "submitErrorDescription": "No s'ha pogut enviar la sol·licitud: {{errorMessage}}",
+    "fileErrorTitle": "❌ Error amb l'arxiu",
+    "fileSizeError": "L'arxiu és massa gran. Màxim {{max}}MB.",
+    "fileTypeError": "Format d'arxiu no permès. Només s'accepten imatges.",
+    "fileCountError": "Només pots adjuntar un màxim de {{max}} arxius."
   },
   "otherRepairs": {
     "title": "Necessites un altre tipus de reparació?",
@@ -164,8 +175,6 @@
     "toastBookingErrorTitle": "Error en la reserva",
     "toastBookingErrorDescription": "No s'ha pogut enviar la sol·licitud: {{errorMessage}}"
   },
-
-
   "footer": {
     "description": "El teu taller de confiança i lloguer de vehicles a La Bisbal d'Empordà des de fa més de 30 anys.",
     "servicesTitle": "Serveis",
@@ -211,14 +220,13 @@
     "toastSuccessDescription": "La teva sol·licitud per al {vehicleName} ha estat enviada. Et contactarem per confirmar.",
     "toastErrorTitle": "Error en la reserva",
     "toastErrorDescription": "No s'ha pogut processar la teva sol·licitud.",
-    "sending":"Enviant"
-    
+    "sending": "Enviant"
   },
   "formErrors": {
-      "nameRequired": "El nom és obligatori",
-      "emailInvalid": "L'email no és vàlid",
-      "phoneInvalid": "El telèfon no és vàlid",
-      "endDateBeforeStart": "La data de fi ha de ser posterior a la d'inici"
+    "nameRequired": "El nom és obligatori",
+    "emailInvalid": "L'email no és vàlid",
+    "phoneInvalid": "El telèfon no és vàlid",
+    "endDateBeforeStart": "La data de fi ha de ser posterior a la d'inici"
   },
   "chatbot": {
     "assistantName": "Assistent Virtual",
@@ -232,6 +240,4 @@
     "rental": "Per a reserves de vehicles o autocaravanes, visita la secció corresponent. Allà podràs veure la disponibilitat i preus.",
     "default": "Ho sento, no he entès la teva pregunta. Pots reformular-la o contactar amb nosaltres directament per a més ajuda."
   }
-
-
 }

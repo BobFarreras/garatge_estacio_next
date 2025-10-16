@@ -122,8 +122,7 @@ export async function createAppointmentAction(prevState: FormState, formData: Fo
         'Email': validatedData.email,
         'Phone': validatedData.phone,
         'VehicleBrand': validatedData.vehicleBrand,
-        'VehicleModel': validatedData.vehicleModel,
-        'Date': validatedData.date,
+        'Matricula': validatedData.vehicleModel, // <--- Si la columna Airtable es diu 'Matricula'        'Date': validatedData.date,
         'Time': validatedData.time,
         'Service': validatedData.service,
         'Message': validatedData.message,
@@ -162,7 +161,7 @@ export async function createAppointmentAction(prevState: FormState, formData: Fo
     console.error('🔴 ERROR a createAppointmentAction:', error);
     await sendErrorNotificationEmail(error);
 
-      // ✅ CORRECCIÓ 2: Lògica de Rollback per a consistència de dades
+    // ✅ CORRECCIÓ 2: Lògica de Rollback per a consistència de dades
     // Si hem arribat a crear un registre a Airtable, l'esborrem.
     if (airtableRecordId) {
       console.warn(`🟠 ROLLBACK: Esborrant el registre d'Airtable ${airtableRecordId} a causa d'un error.`);

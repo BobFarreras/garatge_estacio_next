@@ -7,16 +7,17 @@
   "contact": "Contacto",
   "hyundaiDescription": "Descubre la innovación y el diseño de la gama Hyundai.",
   "kiaDescription": "Experimenta el poder de sorprender con la nueva generación Kia.",
-  
   "workshopPage": {
     "metaTitle": "Taller Mecánico - Garatge Estació | Reparación y Mantenimiento",
     "metaDescription": "Servicios de taller mecánico en La Bisbal. Pide cita previa online para mantenimiento y neumáticos.",
     "title": "Tu Taller de Confianza",
     "subtitle": "Más de 30 años cuidando de tu vehículo.",
-   "servicesTitle": "Nuestros Servicios de Taller",
+    "servicesTitle": "Nuestros Servicios de Taller",
     "servicesSubtitle": "Expertos en el cuidado de tu vehículo. Haz clic en un servicio para pedir tu cita."
   },
   "workshopServices": {
+    "canviDoli": "Cambio de Aceite",
+    "canviDoliDesc": "Servicio completo de cambio de aceite y filtros para mantener el motor en óptimas condiciones.",
     "tires": "Cambio de neumáticos",
     "tiresDesc": "Sustitución, equilibrado y alineación de ruedas para una conducción segura.",
     "brakes": "Revisión de frenos",
@@ -51,9 +52,13 @@
     "labelDate": "Selecciona una fecha",
     "labelTime": "Selecciona una hora",
     "labelMessageOptional": "Mensaje (Opcional)",
-     "privacyAccept": "He leído y acepto la",
+    "privacyAccept": "He leído y acepto la",
     "privacyPolicy": "política de privacidad",
-    "sending": "Enviando"
+    "sending": "Enviando",
+    "labelVehicleBrand": "Marca del Vehículo",
+    "brandPlaceholder": "Ej: BMW",
+    "labelVehiclePlate": "Matrícula",
+    "platePlaceholder": "Ej: 4567ABC"
   },
   "appointment": {
     "title": "Pide Cita Previa Online",
@@ -66,7 +71,6 @@
     "bookingFor": "Reserva para:",
     "changeService": "Cambiar servicio",
     "fillForm": "Rellena el siguiente formulario para finalizar tu reserva."
-
   },
   "toast": {
     "loadSlotsErrorTitle": "Error",
@@ -83,15 +87,23 @@
     "dateRequired": "Debes seleccionar una fecha.",
     "timeRequired": "Debes seleccionar una hora.",
     "privacyRequired": "Debes aceptar la política de privacidad para continuar.",
-    "messageTooShort": "El mensaje debe tener al menos 10 caracteres."
-
-
+    "messageTooShort": "El mensaje debe tener al menos 10 caracteres.",
+    "brandRequired": "La marca del vehículo es obligatoria.",
+    "plateRequired": "La matrícula es obligatoria.",
+    "plateInvalid": "Formato de matrícula inválido (4 números y 3 letras, ej: 4567ABC).",
+    "dateTooSoon": "La reserva debe ser con al menos {{days}} días de antelación.",
+    "noWeekend": "No se pueden reservar citas en fin de semana.",
+    "fileErrorTitle": "❌ Error con el archivo",
+    "fileSizeError": "El archivo es demasiado grande. Máximo {{max}}MB.",
+    "fileTypeError": "Formato de archivo no permitido. Solo se aceptan imágenes.",
+    "fileCountError": "Solo puedes adjuntar un máximo de {{max}} archivos.",
+    "invalidFileType": "El formato de archivo no es válido. Solo se aceptan: {{formats}}."
   },
   "otherRepairs": {
     "title": "¿Necesitas otro tipo de reparación?",
     "subtitle": "Para diagnósticos de motor, frenos, u otras consultas, contáctanos directamente.",
     "contactNow": "Contactar Ahora",
-     "contactWhatsApp": "Contactar por WhatsApp"
+    "contactWhatsApp": "Contactar por WhatsApp"
   },
   "contactPage": {
     "metaTitle": "Contacto - Garatge Estació",
@@ -163,8 +175,6 @@
     "toastBookingErrorTitle": "Error en la reserva",
     "toastBookingErrorDescription": "No se ha podido enviar la solicitud: {{errorMessage}}"
   },
-
-
   "footer": {
     "description": "Tu taller de confianza y alquiler de vehículos en La Bisbal d'Empordà desde hace más de 30 años.",
     "servicesTitle": "Servicios",
@@ -212,10 +222,10 @@
     "toastErrorDescription": "No se ha podido procesar tu solicitud."
   },
   "formErrors": {
-      "nameRequired": "El nombre es obligatorio",
-      "emailInvalid": "El email no es válido",
-      "phoneInvalid": "El teléfono no es válido",
-      "endDateBeforeStart": "La fecha de fin debe ser posterior a la de inicio"
+    "nameRequired": "El nombre es obligatorio",
+    "emailInvalid": "El email no es válido",
+    "phoneInvalid": "El teléfono no es válido",
+    "endDateBeforeStart": "La fecha de fin debe ser posterior a la de inicio"
   },
   "chatbot": {
     "assistantName": "Asistente Virtual",
@@ -229,6 +239,4 @@
     "rental": "Para reservas de vehículos o autocaravanas, visita la sección correspondiente. Allí podrás ver la disponibilidad y precios.",
     "default": "Lo siento, no he entendido tu pregunta. Puedes reformularla o contactar con nosotros directamente para más ayuda."
   }
-  
-  
 }

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+// src/hooks/useAvailableSlots.ts
+
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from "sonner"; // Assuming 'sonner' for toasts
 
 // El hook rep la data seleccionada com a argument
 export function useAvailableSlots(selectedDate: string) {
-    const { toast } = useToast();
     const { t } = useTranslation();
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -16,7 +17,7 @@ export function useAvailableSlots(selectedDate: string) {
             return;
         }
 
-        // Comprovem si és cap de setmana
+        // Bloqueig de l'API si la data ja ha estat filtrada per Zod
         const day = new Date(selectedDate).getUTCDay();
         if (day === 0 || day === 6) {
             setAvailableSlots([]);
@@ -32,7 +33,10 @@ export function useAvailableSlots(selectedDate: string) {
                 const data = await response.json();
                 setAvailableSlots(data.slots || []);
             } catch (error) {
-                toast({ title: t('toast.loadSlotsErrorTitle'), description: t('toast.loadSlotsErrorDescription'), variant: "destructive"});
+                // Utilitzem sonner.toast
+                toast.error(t('toast.loadSlotsErrorTitle'), { 
+                    description: t('toast.loadSlotsErrorDescription') 
+                });
             } finally {
                 setIsLoadingSlots(false);
             }
@@ -40,8 +44,7 @@ export function useAvailableSlots(selectedDate: string) {
 
         fetchAvailableSlots();
         
-    // Aquest efecte es tornarà a executar cada cop que 'selectedDate' canviï
-    }, [selectedDate, toast, t]);
+    }, [selectedDate, t]); // selectedDate és la dependència clau
 
     // El hook retorna l'estat que el component necessita
     return { availableSlots, isLoadingSlots };

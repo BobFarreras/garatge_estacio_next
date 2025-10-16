@@ -15,7 +15,7 @@ import canvimanteniment from "@/../public/images/servies/manteniment.jpeg";
 import canvipastilelsFre from "@/../public/images/servies/pastillesdefre.jpeg";
 import canviProPostITV from "@/../public/images/servies/proPostitv.jpeg";
 import vehiclesPesants from "@/../public/images/servies/vehiclesPesants.jpeg";
-import reparacioIntegral from "@/../public/images/servies/reparacioIntegral3.jpeg";
+import canvidoli from "@/../public/images/servies/canviDoli.jpeg";
 import altresServeis from "@/../public/images/servies/altresServeis.jpeg";
 
 import { Wrench, Settings, Car, BatteryCharging, Wind, Shield, Truck, Building, MoreHorizontal, MessageCircle } from 'lucide-react';
@@ -28,14 +28,16 @@ export default function TallerPage() {
     // La llista de serveis es genera aquí, al servidor.
     // És contingut estàtic, perfecte per a un Server Component.
     const services: Service[] = [
-        { id: 1, title: t('workshopServices.tires'), description: t('workshopServices.tiresDesc'), image: canviPneumatics, icon: Car },
-        { id: 2, title: t('workshopServices.brakes'), description: t('workshopServices.brakesDesc'), image: canvipastilelsFre, icon: Shield },
-        { id: 3, title: t('workshopServices.battery'), description: t('workshopServices.batteryDesc'), image: canviBateria, icon: BatteryCharging },
-        { id: 4, title: t('workshopServices.suspension'), description: t('workshopServices.suspensionDesc'), image: canviAmortidors, icon: Wind },
-        { id: 5, title: t('workshopServices.ac'), description: t('workshopServices.acDesc'), image: canvimanteniment, icon: Settings },
-        { id: 6, title: t('workshopServices.itv'), description: t('workshopServices.itvDesc'), image: canviProPostITV, icon: Wrench },
-        { id: 7, title: t('workshopServices.heavy'), description: t('workshopServices.heavyDesc'), image: vehiclesPesants, icon: Truck },
-        { id: 8, title: t('workshopServices.integral'), description: t('workshopServices.integralDesc'), image: reparacioIntegral, icon: Building },
+        { id: 1, title: t('workshopServices.canviDoli'), description: t('workshopServices.canviDoliDesc'), image: canvidoli, icon: Building },
+
+        { id: 2, title: t('workshopServices.tires'), description: t('workshopServices.tiresDesc'), image: canviPneumatics, icon: Car },
+        { id: 3, title: t('workshopServices.brakes'), description: t('workshopServices.brakesDesc'), image: canvipastilelsFre, icon: Shield },
+        { id: 4, title: t('workshopServices.battery'), description: t('workshopServices.batteryDesc'), image: canviBateria, icon: BatteryCharging },
+        { id: 5, title: t('workshopServices.suspension'), description: t('workshopServices.suspensionDesc'), image: canviAmortidors, icon: Wind },
+        { id: 6, title: t('workshopServices.ac'), description: t('workshopServices.acDesc'), image: canvimanteniment, icon: Settings },
+        { id: 7, title: t('workshopServices.itv'), description: t('workshopServices.itvDesc'), image: canviProPostITV, icon: Wrench },
+        { id: 8, title: t('workshopServices.heavy'), description: t('workshopServices.heavyDesc'), image: vehiclesPesants, icon: Truck },
+        //{ id: 8, title: t('workshopServices.integral'), description: t('workshopServices.integralDesc'), image: reparacioIntegral, icon: Building },
         { id: 9, title: t('workshopServices.other'), description: t('workshopServices.otherDesc'), image: altresServeis, icon: MoreHorizontal },
     ];
 
