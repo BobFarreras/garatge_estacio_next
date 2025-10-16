@@ -28,46 +28,66 @@ async function getAuthenticatedClient() {
 }
 
 // La resta de les teves funcions, ara utilitzant el nou mètode d'autenticació
+// La resta de les teves funcions, ara utilitzant el nou mètode d'autenticació
 export async function createGoogleCalendarEvent(data: any, airtableRecordId: string) {
-  const calendarId = process.env.GOOGLE_CALENDAR_ID;
-  if (!calendarId) {
-    console.error('GOOGLE_CALENDAR_ID no està definit.');
-    return null;
-  }
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  if (!calendarId) {
+    console.error('GOOGLE_CALENDAR_ID no està definit.');
+    return null;
+  }
 
-  try {
-    const calendar = await getAuthenticatedClient();
-    const appointmentDate = new Date(`${data.date}T${data.time}`);
-    const endDate = new Date(appointmentDate.getTime() + 60 * 60 * 1000); // 1 hora de durada
+  try {
+    const calendar = await getAuthenticatedClient();
+    
+    // 💡 DECISIÓ CLAU: Crear la cadena de Data i Hora Local sense forçar UTC
+    // data.date = YYYY-MM-DD
+    // data.time = HH:MM
+    const startDateTimeLocal = `${data.date}T${data.time}:00`;
 
-    const event = {
-      summary: `Cita Taller: ${data.service} - ${data.name}`,
-      description: `Client: ${data.name}\nTelèfon: ${data.phone}\nEmail: ${data.email}\n\nVehicle: ${data.vehicleBrand} ${data.vehicleModel}\nServei: ${data.service}\n\nMissatge del client:\n${data.message || 'Cap'}\n\nID Airtable: ${airtableRecordId}`,
-      start: {
-        dateTime: appointmentDate.toISOString(),
-        timeZone: 'Europe/Madrid',
-      },
-      end: {
-        dateTime: endDate.toISOString(),
-        timeZone: 'Europe/Madrid',
-      },
-      //COLOR DEL CALENDARI
-      colorId: '11',
+    // Utilitzem l'objecte Date SENSE la 'Z' al final per manipular el temps
+    // Això encara podria dependre de la TZ de Vercel, per això la manipulació amb date-fns és més neta,
+    // però per consistència amb el vostre codi, farem la manipulació en la cadena de temps:
 
-    };
+    // 1. Convertim la hora a Number
+    const [hours, minutes] = data.time.split(':').map(Number);
+    
+    // 2. Calculem l'hora de finalització (sumant 1 hora)
+    const endHours = hours + 1;
+    const endMinutes = minutes;
+    
+    // 3. Format de nou a string (assegurant dos dígits)
+    const endDateTimeLocal = `${data.date}T${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}:00`;
 
-    const createdEvent = await calendar.events.insert({
-      calendarId: calendarId,
-      requestBody: event,
-    });
 
-    console.log('✅ Event de Google Calendar creat:', createdEvent.data.htmlLink);
-    return createdEvent.data;
+    const event = {
+      summary: `Cita Taller: ${data.service} - ${data.name}`,
+      description: `Client: ${data.name}\nTelèfon: ${data.phone}\nEmail: ${data.email}\n\nVehicle: ${data.vehicleBrand} ${data.vehicleModel}\nServei: ${data.service}\n\nMissatge del client:\n${data.message || 'Cap'}\n\nID Airtable: ${airtableRecordId}`,
+      start: {
+        // ✅ CORRECCIÓ: Enviem la data i hora LOCAL com a string (YYYY-MM-DDTHH:MM:SS)
+        dateTime: startDateTimeLocal, 
+        timeZone: 'Europe/Madrid', // <-- Aquesta zona horària indica com interpretar l'string anterior
+      },
+      end: {
+        // ✅ CORRECCIÓ: Enviem la data i hora de finalització LOCAL com a string
+        dateTime: endDateTimeLocal,
+        timeZone: 'Europe/Madrid',
+      },
+      //COLOR DEL CALENDARI
+      colorId: '11',
+    };
 
-  } catch (error) {
-    console.error('🔴 Google Calendar API error (Cita):', error);
-    throw error; // <-- Rellancem l'error perquè l'acció principal el capturi
-  }
+    const createdEvent = await calendar.events.insert({
+      calendarId: calendarId,
+      requestBody: event,
+    });
+
+    console.log('✅ Event de Google Calendar creat:', createdEvent.data.htmlLink);
+    return createdEvent.data;
+
+  } catch (error) {
+    console.error('🔴 Google Calendar API error (Cita):', error);
+    throw error; 
+  }
 }
 
 export async function deleteGoogleCalendarEvent(eventId: string) {
