@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 
 // Importacions d'imatges
 import tallerMecanic from "@/../public/images/servies/manteniment.jpeg";
-import LloguerCotxes from "@/../public/images/hyundai/ix5.avif";
+import LloguerCotxes from "@/../public/images/hyundai/ix5.jpg";
 import ImgLloguerAutocarabanes from "@/../public/images/autocaravanes/perfilAutocaravana.jpg";
 
 export function ServicesSection() {

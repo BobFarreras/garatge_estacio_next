@@ -14,7 +14,7 @@ import ioniq5Image from '@/../public/images/hyundai/ioniq5_joaqjc.jpg';
 import konaImage from '@/../public/images/hyundai/kona_pipidg.jpg';
 import ioniq6Image from '@/../public/images/hyundai/ionic6_utmryt.jpg';
 // Aquesta imatge sembla que no s'usa, però la importo per si de cas.
-import ix5Image from '@/../public/images/hyundai/ix5.avif';
+import ix5Image from '@/../public/images/hyundai/ix5.jpg';
 
 
 export const metadata: Metadata = {
