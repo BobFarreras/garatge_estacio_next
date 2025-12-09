@@ -14,7 +14,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx", // <-- CANVIA AQUESTA LÍNIA
+    "jsx": "preserve", // <-- CANVIA AQUESTA LÍNIA
     "incremental": true,
     "plugins": [
       {
