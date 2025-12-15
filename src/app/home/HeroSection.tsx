@@ -11,10 +11,11 @@ import { motion, Variants, Transition } from "framer-motion";
 import Hero from "@/../public/images/hero2.jpg";
 import TexturaMetalica from "@/../public/images/texturametalica.jpeg";
 
-// Definicions per a les animacions (les mantenim locals al component que les utilitza)
+// ✅ CORRECCIÓ: Eliminem el càsting 'as Transition["ease"]' que causava l'error.
+// Framer Motion accepta arrays de 4 números (Cubic Bezier) directament.
 const baseTransition: Transition = {
   duration: 0.7,
-  ease: [0.22, 1, 0.36, 1] as unknown as Transition["ease"],
+  ease: [0.22, 1, 0.36, 1], 
 };
 
 const fadeUp: Variants = {
