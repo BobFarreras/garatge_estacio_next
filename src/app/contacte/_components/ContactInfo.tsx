@@ -25,7 +25,7 @@ export const ContactInfo = () => {
             </div>
             <div>
                 <h3 className="text-2xl font-bold mb-4">{t('contactPage.schedule')}</h3>
-                <p className="text-gray-600"><strong>{t('contactPage.weekdays')}</strong> 8:00 - 18:00</p>
+                <p className="text-gray-600"><strong>{t('contactPage.weekdays')}</strong> 8:00 - 16:00</p>
                 <p className="text-gray-600"><strong>{t('contactPage.saturday')}</strong> {t('contactPage.closed')}</p>
                 <p className="text-gray-600"><strong>{t('contactPage.sunday')}</strong> {t('contactPage.closed')}</p>
             </div>
