@@ -1,10 +1,11 @@
-// Fitxer: _components/BookingFormDialog.tsx (Versió Corregida i Definitiva)
+// Fitxer: _components/BookingFormDialog.tsx (Versió Corregida per a React 19)
 "use client";
 
-import React, { useEffect, useRef, useCallback } from 'react'; // ✅ Importem useCallback
-import { useFormState, useFormStatus } from 'react-dom';
+// ✅ 1. Importem useActionState des de 'react' en lloc de 'react-dom'
+import React, { useEffect, useRef, useCallback, useActionState } from 'react'; 
+import { useFormStatus } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { toast } from "sonner"; // Usarem sonner com vam parlar
+import { toast } from "sonner";
 import { format } from 'date-fns';
 import Link from 'next/link';
 import type { DateRange } from 'react-day-picker';
@@ -50,34 +51,26 @@ export const BookingFormDialog = ({ open, onOpenChange, motorhome, dateRange, on
   const { t, i18n } = useTranslation();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [state, formAction] = useFormState(createMotorhomeBookingAction, initialState);
+  // ✅ 2. Canviem useFormState per useActionState
+  const [state, formAction] = useActionState(createMotorhomeBookingAction, initialState);
 
-  // Efecte per gestionar les notificacions després de l'enviament
-  // ✅ CORRECCIÓ: Simplifiquem l'useEffect per evitar resetejar el formulari en cas d'error.
   useEffect(() => {
-    // Aquest efecte s'activa DESPRÉS que la Server Action hagi retornat un estat.
-
     if (state.success) {
-      // ÈXIT: Mostrem notificació, cridem la funció de success (que tancarà el diàleg) i resetejem.
       toast.success(t('motorhomeRentalPage.toastBookingSuccessTitle'), {
         description: state.message,
       });
       onBookingSuccess();
       formRef.current?.reset();
     } else if (state.error) {
-      // ERROR: Només mostrem la notificació. NO resetejem el formulari.
       toast.error(t('motorhomeRentalPage.toastBookingErrorTitle'), {
-        description: state.error, // Ara aquest missatge és específic!
+        description: state.error, 
       });
     }
   }, [state, onBookingSuccess, t]);
-  // ✅ SOLUCIÓ CLAU: Creem una funció estable amb useCallback per a onOpenChange
+
   const handleOpenChange = useCallback((isOpen: boolean) => {
     if (!isOpen) {
-      // Quan el diàleg es tanca, resetejem el formulari visualment
       formRef.current?.reset();
-      // Important: No podem resetejar l'estat de 'useFormState' aquí,
-      // però resetejar el formulari ja evita mostrar errors antics.
     }
     onOpenChange(isOpen);
   }, [onOpenChange]);

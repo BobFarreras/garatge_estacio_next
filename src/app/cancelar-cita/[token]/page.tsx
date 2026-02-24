@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, use } from 'react'; // ✅ Importem 'use' directament de React
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { cancelAppointmentAction } from '@/app/taller/actions';
 import type { FormState } from '@/types/actions';
 
-// ✅ SOLUCIÓ: Canviem el tipus explícit per 'any' per evitar l'error de build de Next.js.
-// Next.js injectarà els paràmetres correctament en temps d'execució.
-export default function CancelarCitaPage({ params }: { params: any }) {
-  // Mantenim la seguretat de tipus extraient el token a una variable tipada.
-  const token: string = params.token;
+// ✅ Definim que 'params' ara és una Promesa que conté el token (Estàndard Next.js 15+)
+export default function CancelarCitaPage({ params }: { params: Promise<{ token: string }> }) {
+  // ✅ NOVA API REACT 19: Desempaquetem la promesa dels params amb use()
+  const { token } = use(params);
   
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<FormState | null>(null);
