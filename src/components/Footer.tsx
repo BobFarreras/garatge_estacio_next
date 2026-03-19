@@ -21,14 +21,16 @@ const Footer = () => {
                         </Link>
                         <p className="text-gray-400" suppressHydrationWarning>
                             {t('footer.description')}
-                        </p>                    
+                        </p>
                     </div>
                     <div>
                         <p className="font-bold text-lg mb-4">{t('footer.servicesTitle')}</p>
                         <ul className="space-y-2">
                             <li><Link href="/taller" className="text-gray-400 hover:text-white">{t('footer.service1')}</Link></li>
                             <li><Link href="/lloguer-vehicles" className="text-gray-400 hover:text-white">{t('footer.service2')}</Link></li>
-                            <li><Link href="/lloguer-autocaravanes" className="text-gray-400 hover:text-white">{t('footer.service3')}</Link></li>
+                            {/* 🚫 COMENTAT TEMPORALMENT PER PETICIÓ DEL CLIENT */}
+                            {/* <li><Link href="/lloguer-autocaravanes" className="text-gray-400 hover:text-white">{t('footer.service3')}</Link></li> */}
+
                         </ul>
                     </div>
                     <div>

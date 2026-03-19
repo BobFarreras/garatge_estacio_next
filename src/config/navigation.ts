@@ -24,7 +24,8 @@ export const getBrandLinks = (t: TFunction): NavLink[] => [
 // Funció per obtenir els enllaços de serveis de lloguer
 export const getServiceLinks = (t: TFunction): NavLink[] => [
   { key: 'carRental', path: '/lloguer-vehicles' },
-  { key: 'motorhomeRental', path: '/lloguer-autocaravanes' },
+  // 🚫 COMENTAT TEMPORALMENT PER PETICIÓ DEL CLIENT
+  // { key: 'motorhomeRental', path: '/lloguer-autocaravanes' },
 ];
 
 // Funció per obtenir l'enllaç de contacte

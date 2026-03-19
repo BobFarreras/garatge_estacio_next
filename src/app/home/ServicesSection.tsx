@@ -10,7 +10,8 @@ import { motion } from "framer-motion";
 // Importacions d'imatges
 import tallerMecanic from "@/../public/images/servies/manteniment.jpeg";
 import LloguerCotxes from "@/../public/images/hyundai/ix5.jpg";
-import ImgLloguerAutocarabanes from "@/../public/images/autocaravanes/perfilAutocaravana.jpg";
+// 🚫 COMENTAT TEMPORALMENT
+// import ImgLloguerAutocarabanes from "@/../public/images/autocaravanes/perfilAutocaravana.jpg";
 
 export function ServicesSection() {
   const { t } = useTranslation();
@@ -52,6 +53,7 @@ export function ServicesSection() {
             icon={<Car className="h-6 w-6" />}
             cta={t("homePage.serviceCarRentalBtn")}
           />
+          {/* 🚫 COMENTAT TEMPORALMENT PER PETICIÓ DEL CLIENT
           <ServiceTile
             href="/lloguer-autocaravanes"
             title={t("homePage.serviceMotorhomeRentalTitle")}
@@ -60,6 +62,7 @@ export function ServicesSection() {
             icon={<Caravan className="h-6 w-6" />}
             cta={t("homePage.serviceMotorhomeRentalBtn")}
           />
+          */}
         </div>
       </div>
     </section>
